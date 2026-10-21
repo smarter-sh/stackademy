@@ -36,7 +36,7 @@ spec:
         - "My budget is $1,000. What courses can I take?"
         - "What is the capital of France?"
       appPlaceholder: "Ask me anything about Stackademy courses..."
-      appInfoUrl: https://smarter.sh
+      appInfoUrl: https://smarter.sh/case-studies/stackademy
       appFileAttachment: false
       subdomain: null
       customDomain: null

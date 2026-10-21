@@ -567,6 +567,8 @@ An LLMClient is the assistant that your users talk to. Its spec has three parts:
   - `appName`, `appAssistant`, `appWelcomeMessage`, `appPlaceholder` and `appExamplePrompts` are the text of the
     chat window: its title, the assistant's name, its first message, the hint in the message box, and the example
     questions that users can click.
+  - `appInfoUrl` is the page that the chat window's header links to. Both advisors link to the
+    [Stackademy case study](https://smarter.sh/case-studies/stackademy), which teaches this project.
   - `deployed` says whether the assistant has its own public web address. It's `false` here: the advisors work in
     the workbench, and you decide when to publish them.
   - `allowedOrigins` lists the other web sites that may embed the assistant's chat once it's deployed. Here

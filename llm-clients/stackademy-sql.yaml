@@ -41,7 +41,7 @@ spec:
         - "My budget is $1,000. What courses can I take?"
         - "I want to study programming. What do you suggest?"
       appPlaceholder: "Ask me anything about Stackademy courses..."
-      appInfoUrl: https://stackademy.edu/online-courses
+      appInfoUrl: https://smarter.sh/case-studies/stackademy
     styles:  # Stackademy's colors
       # appLogoUrl: https://cdn.smarter.sh/images/llmclients/stackademy/logo.png  # coming soon: upload, then uncomment
       # appBackgroundImageUrl: https://cdn.smarter.sh/images/llmclients/stackademy/background.png  # coming soon: upload, then uncomment
