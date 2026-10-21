@@ -569,6 +569,9 @@ An LLMClient is the assistant that your users talk to. Its spec has three parts:
     questions that users can click.
   - `deployed` says whether the assistant has its own public web address. It's `false` here: the advisors work in
     the workbench, and you decide when to publish them.
+  - `allowedOrigins` lists the other web sites that may embed the assistant's chat once it's deployed. Here
+    it's [smarter.sh](https://smarter.sh/case-studies/stackademy), whose case study about this project lets
+    you talk to both advisors. A browser refuses a chat to any site that isn't on the list.
 - **`config.styles`** are the chat window's colors, font and shapes, in Stackademy's navy and orange.
   [Styling the chat](https://docs.smarter.sh/en/latest/smarter-resources/llmclient/styles.html)
 - **`plugins`** lists, by name, the tools that the assistant may use.

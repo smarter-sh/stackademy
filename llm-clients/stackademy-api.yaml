@@ -16,6 +16,9 @@ metadata:
 spec:
   config:
     prompt:
+      # the web sites that may embed this assistant's chat, once it's deployed: smarter.sh's Stackademy case study.
+      allowedOrigins:
+        - https://smarter.sh
       deployed: false
       provider: openai
       defaultModel: gpt-6-luna
