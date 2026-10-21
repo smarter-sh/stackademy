@@ -1,0 +1,17 @@
+# yamllint's rules for this repository: https://yamllint.readthedocs.io/en/stable/rules.html
+extends: default
+
+rules:
+  # Long descriptions and prompts read better on one line than wrapped.
+  line-length: disable
+  # Manifests don't start with "---".
+  document-start: disable
+  # GitHub's workflow and Dependabot files use the key "on", which yamllint reads as a boolean.
+  truthy:
+    check-keys: false
+  # Both "- item" at the parent's indentation and indented lists are fine.
+  indentation:
+    spaces: 2
+    indent-sequences: whatever
+  comments:
+    min-spaces-from-content: 2

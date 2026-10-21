@@ -1,0 +1,99 @@
+# Checks that run before each commit, and that you can run at any time with `pre-commit run --all-files`.
+#
+# This repository only holds YAML: Smarter manifests, and a few configuration files. The hooks check
+# that every file is tidy, valid YAML, free of typos and private keys, and that each manifest matches
+# the JSON Schema of its kind, which the Smarter platform publishes.
+#
+# Dependabot keeps the hooks' versions current: see .github/dependabot.yml.
+default_install_hook_types: [pre-commit]
+default_stages: [pre-commit, manual]
+
+repos:
+  # General housekeeping.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-yaml
+      # manifest templates, *.yaml.tpl, are YAML too.
+      - id: check-yaml
+        name: check yaml (manifest templates)
+        types: [file]
+        files: \.ya?ml\.tpl$
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: trailing-whitespace
+
+  # YAML style. See .yamllint.yaml.
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        types: [file]
+        files: \.ya?ml(\.tpl)?$
+
+  # Typos, in the descriptions and prompts as much as anywhere.
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+    hooks:
+      - id: codespell
+
+  # Each manifest must match the JSON Schema of its kind. The Smarter platform publishes them, in
+  # https://github.com/smarter-sh/smarter/tree/main/smarter/smarter/apps/api/v1/contract/sam
+  # Each folder holds manifests of one kind.
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.2
+    hooks:
+      - id: check-jsonschema
+        name: validate Secret manifests
+        files: ^secrets/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Secret.schema.json
+      - id: check-jsonschema
+        name: validate SqlConnection manifests
+        types_or: [file]
+        files: ^connections/sql/.*\.ya?ml(\.tpl)?$
+        args:
+          - --default-filetype
+          - yaml
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/SqlConnection.schema.json
+      - id: check-jsonschema
+        name: validate ApiConnection manifests
+        types_or: [file]
+        files: ^connections/api/.*\.ya?ml(\.tpl)?$
+        args:
+          - --default-filetype
+          - yaml
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/ApiConnection.schema.json
+      - id: check-jsonschema
+        name: validate SqlPlugin manifests
+        files: ^plugins/sql/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/SqlPlugin.schema.json
+      - id: check-jsonschema
+        name: validate ApiPlugin manifests
+        files: ^plugins/api/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/ApiPlugin.schema.json
+      - id: check-jsonschema
+        name: validate LLMClient manifests
+        files: ^llm-clients/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/LLMClient.schema.json
+      - id: check-jsonschema
+        name: validate Budget manifests
+        files: ^budgets/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Budget.schema.json
