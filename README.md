@@ -217,7 +217,7 @@ folders group the manifests by kind:
 | [`llm-clients/`](llm-clients/)                       | The two Stanleys: their model, instructions, chat text and colors           |
 | [`budgets/`](budgets/)                               | The project's spending limits                                               |
 | [`scripts/`](scripts/)                               | Not manifests: the scripts that Smarter runs, e.g. to create the database   |
-| [`Makefile`](Makefile)                               | Shortcuts for your own computer: `make database`, `make check`              |
+| [`Makefile`](Makefile)                               | Shortcuts for your own computer: `make init`, `make check`, `make database` |
 | [`.github/`](.github/)                               | GitHub's settings for this repository: the automated checks, and Dependabot |
 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | The list of automated checks                                                |
 
@@ -739,12 +739,12 @@ of them, and opens a pull request for each one, which you review and merge like 
 <summary>Running the checks on your own computer</summary>
 
 The checks are [pre-commit](https://pre-commit.com) hooks. If you work in a clone of this repository, you can run
-them before each commit, so that mistakes never reach GitHub. With Python installed:
+them before each commit, so that mistakes never reach GitHub. With Python 3 installed:
 
 ```console
-pip install pre-commit
-pre-commit install          # run the checks before each commit
-pre-commit run --all-files  # run them now, on every file
+make init   # once: a Python virtual environment in venv/, with pre-commit, which then checks each commit
+make check  # run the checks now, on every file
+make        # list the other shortcuts
 ```
 
 </details>

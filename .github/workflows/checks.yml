@@ -27,7 +27,7 @@ jobs:
 
       - name: Run the checks
         run: |
-          python -m pip install --quiet pre-commit
+          python -m pip install --quiet -r requirements.txt
           pre-commit run --all-files --show-diff-on-failure
 
   database:

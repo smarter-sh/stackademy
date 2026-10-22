@@ -1,9 +1,19 @@
-# Dependabot opens a pull request when a newer version of a pre-commit hook, or of an action that a
-# workflow uses, is released. .github/CODEOWNERS names who reviews it.
+# Dependabot opens a pull request when a newer version of a pre-commit hook, of pre-commit itself, or of
+# an action that a workflow uses, is released. .github/CODEOWNERS names who reviews it.
 # https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
 version: 2
 updates:
   - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "automated pr"
+    assignees:
+      - "lpm0073"
+  # requirements.txt: pre-commit itself, which make init and the checks workflow install.
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "monthly"
