@@ -1,8 +1,9 @@
 # Checks that run before each commit, and that you can run at any time with `pre-commit run --all-files`.
 #
-# This repository only holds YAML: Smarter manifests, and a few configuration files. The hooks check
-# that every file is tidy, valid YAML, free of typos and private keys, and that each manifest matches
-# the JSON Schema of its kind, which the Smarter platform publishes.
+# This repository holds Smarter manifests, a few configuration files, and, in scripts/, the scripts that
+# Smarter runs when it loads the repository, e.g. the one that creates the course database. The hooks check that every file is tidy, valid YAML, free of
+# typos and private keys, that each manifest matches the JSON Schema of its kind, which the Smarter
+# platform publishes, and that the shell script is free of common mistakes.
 #
 # Dependabot keeps the hooks' versions current: see .github/dependabot.yml.
 default_install_hook_types: [pre-commit]
@@ -42,6 +43,12 @@ repos:
     rev: v2.4.3
     hooks:
       - id: codespell
+
+  # Common mistakes in shell scripts: scripts/*.sh.
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
 
   # Each manifest must match the JSON Schema of its kind. The Smarter platform publishes them, in
   # https://github.com/smarter-sh/smarter/tree/main/smarter/smarter/apps/api/v1/contract/sam

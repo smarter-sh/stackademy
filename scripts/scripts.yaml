@@ -1,0 +1,11 @@
+# The scripts that Smarter runs when it loads this repository, with manage.py load_from_github. Only the scripts
+# listed here run. Each runs either before the manifests are applied (stage: pre), or after (stage: post), in this
+# order. See https://docs.smarter.sh/en/latest/smarter-framework/smarter-manifests/stackademy.html
+scripts:
+  - path: create-course-database.sh
+    stage: pre
+    description: >-
+      Create the course database, smarter_test_db, and its read-only users, which the SqlConnection in
+      connections/sql/ connects to. Before the manifests, so that the database exists when the SqlConnection is
+      applied.
+    timeout: 300

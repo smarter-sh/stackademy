@@ -1,5 +1,6 @@
-# Runs the checks in .pre-commit-config.yaml on every pull request, and on every change to main,
-# so that they run even for changes made in GitHub's web editor. The result shows on the pull request.
+# Runs the checks in .pre-commit-config.yaml, and loads the course database, on every pull request
+# and on every change to main, so that they run even for changes made in GitHub's web editor. The
+# result shows on the pull request.
 name: Checks
 
 on:
@@ -28,3 +29,35 @@ jobs:
         run: |
           python -m pip install --quiet pre-commit
           pre-commit run --all-files --show-diff-on-failure
+
+  database:
+    name: Load the course database
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the repository's files
+        uses: actions/checkout@v6
+
+      - name: Start MariaDB
+        run: |
+          docker run --detach --name smarter-mariadb --env MARIADB_ROOT_PASSWORD=smarter mariadb:11
+          until docker exec smarter-mariadb mariadb -u root -psmarter -e 'SELECT 1' >/dev/null 2>&1; do sleep 2; done
+
+      # The same way that Smarter's local development environment does: into the smarter-mariadb container.
+      - name: Load the course database, twice
+        run: |
+          ./scripts/create-course-database.sh
+          ./scripts/create-course-database.sh
+
+      - name: Check the courses, and that the test users may read them, but not change them
+        run: |
+          set -eu
+          for user in smarter_test_user smarter_test_proxy_user; do
+            courses=$(docker exec smarter-mariadb mariadb -u "$user" -p"$user" --batch --skip-column-names \
+              -e 'SELECT COUNT(*) FROM smarter_test_db.courses;')
+            test "$courses" = 48 || { echo "$user sees $courses courses, not 48"; exit 1; }
+            if docker exec smarter-mariadb mariadb -u "$user" -p"$user" \
+              -e "DELETE FROM smarter_test_db.courses WHERE course_code = 'CS101';" 2>/dev/null; then
+              echo "$user may change the courses, but should only read them"; exit 1
+            fi
+          done
+          echo "Both test users read 48 courses, and may not change them."

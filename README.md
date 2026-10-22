@@ -45,6 +45,7 @@ Smarter web console and a web browser, you have everything you need. This page e
 - [Make it your own](#make-it-your-own)
 - [The Smarter extension for VS Code](#the-smarter-extension-for-vs-code)
 - [The automated checks](#the-automated-checks)
+- [The course database](#the-course-database)
 - [How Smarter loads this repository](#how-smarter-loads-this-repository)
 - [Learn more](#learn-more)
 
@@ -215,12 +216,15 @@ folders group the manifests by kind:
 | [`plugins/api/`](plugins/api/)                       | The tool that searches the API                                              |
 | [`llm-clients/`](llm-clients/)                       | The two Stanleys: their model, instructions, chat text and colors           |
 | [`budgets/`](budgets/)                               | The project's spending limits                                               |
+| [`scripts/`](scripts/)                               | Not manifests: the scripts that Smarter runs, e.g. to create the database   |
+| [`Makefile`](Makefile)                               | Shortcuts for your own computer: `make database`, `make check`              |
 | [`.github/`](.github/)                               | GitHub's settings for this repository: the automated checks, and Dependabot |
 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | The list of automated checks                                                |
 
 > [!NOTE]
-> The database and the course catalogue API aren't in this repository. They come with every Smarter platform, for
-> examples like this one. The passwords in [`secrets/`](secrets/) are public test passwords, which is the only
+> The course catalogue API isn't in this repository: it comes with every Smarter platform. The course database is,
+> in [`scripts/`](scripts/), and every Smarter platform creates it from there when it's set up. See
+> [The course database](#the-course-database). The passwords in [`secrets/`](secrets/) are public test passwords, which is the only
 > reason they can be here. Never put a real password in a repository. See [Keep secrets secret](#keep-secrets-secret).
 
 ---
@@ -713,16 +717,18 @@ command, with a GitHub sign-in, copies your fork to your computer, all without t
 ## The automated checks
 
 Every pull request, and every change to `main`, runs a set of checks, listed in
-[`.pre-commit-config.yaml`](.pre-commit-config.yaml). GitHub shows the result on the pull request, with a ✅ or a
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml) and [`.github/workflows/checks.yml`](.github/workflows/checks.yml). GitHub shows the result on the pull request, with a ✅ or a
 ❌, and the details are one click away. The checks make sure that:
 
 - every file is valid YAML, and tidy: no stray spaces at the ends of lines, one newline at the end of each file;
 - the YAML follows a consistent style ([yamllint](https://yamllint.readthedocs.io));
 - there are no common typos, in the prompts as much as anywhere ([codespell](https://github.com/codespell-project/codespell));
 - no private key has been committed by mistake;
+- the shell script that creates the course database is free of common mistakes ([ShellCheck](https://www.shellcheck.net));
 - **each manifest is a valid manifest of its kind**, checked against the JSON Schema that Smarter publishes for each
   kind: every required setting is there, and every value is of the right type. A mistake here would otherwise only
   show up when someone applies the file. This is why each folder holds manifests of a single kind.
+- the course database loads, and its test users can read the courses but not change them.
 
 If a check fails, open its details, fix the file on your branch, and commit again: the checks run again.
 
@@ -745,6 +751,36 @@ pre-commit run --all-files  # run them now, on every file
 
 ---
 
+## The course database
+
+Stanley's SQL advisor reads Stackademy's catalogue from a real database, `smarter_test_db`, whose `courses` table
+holds the 48 courses. [`scripts/smarter_test_db.sql`](scripts/smarter_test_db.sql) creates it: the database, the
+table, the courses, and two users, `smarter_test_user` and `smarter_test_proxy_user`, which may read the courses but
+not change them. Their passwords are their names, which is why the
+[SqlConnection](#the-database-connection-connectionssql) and the [Secrets](#secrets-secrets) can be public.
+
+You don't need to do anything to get it: every Smarter platform creates it when it's set up (see
+[How Smarter loads this repository](#how-smarter-loads-this-repository)). To change the catalogue, change the SQL
+script, and the next platform setup recreates the database from it.
+
+[`scripts/create-course-database.sh`](scripts/create-course-database.sh) runs the SQL script against a MariaDB or
+MySQL server. Running it again replaces the database, so it's also how you reset the catalogue. It connects as a user
+that may create databases and users, e.g. `root`, and reads that user's password from the `MYSQL_PWD` environment
+variable, or asks for it.
+
+```console
+make database                                                           # into the smarter-mariadb container
+                                                                        # of Smarter's local development environment
+./scripts/create-course-database.sh --container my-mariadb              # into another Docker container
+MYSQL_PWD=... ./scripts/create-course-database.sh --host db.example.com # into a server, with the mariadb client
+./scripts/create-course-database.sh --help                              # every option
+```
+
+The automated checks load the script into a new MariaDB server, twice, and check that both users read 48 courses and
+can't change them.
+
+---
+
 ## How Smarter loads this repository
 
 Smarter platforms load this repository themselves, when they're set up, so that every account starts with a working
@@ -752,6 +788,34 @@ example. They read every manifest, skip the files that aren't manifests (this RE
 template, and apply the manifests in the order of their dependencies: Secrets, then Connections, then plugins, then
 LLMClients, then the Budget. The folders are only for people. Any project laid out like this one can be loaded the
 same way.
+
+### Scripts
+
+Some things can't be described by a manifest, such as the course database itself. A project keeps the scripts that
+create them in its [`scripts/`](scripts/) folder, which never holds manifests, and lists them in
+[`scripts/scripts.yaml`](scripts/scripts.yaml):
+
+```yaml
+scripts:
+  - path: create-course-database.sh # in scripts/
+    stage: pre # pre: before the manifests are applied. post: after
+    description: Create the course database, smarter_test_db, ...
+    timeout: 300 # seconds; optional
+```
+
+When a platform is set up, Smarter runs the `pre` scripts, applies the manifests, deploys the assistants, then runs
+the `post` scripts, each in the order of `scripts.yaml`. Only the scripts listed there run, so the folder can also
+hold the files they read, such as the SQL script. Each script must be executable, with a `#!` line, and runs in the
+repository's folder with only these environment variables, never the platform's own passwords and keys:
+
+| Variable                                                  | Value                                                   |
+| --------------------------------------------------------- | ------------------------------------------------------- |
+| `SMARTER_DATABASE_HOST`, `SMARTER_DATABASE_PORT`          | the platform's database server                          |
+| `SMARTER_DATABASE_ADMIN_USERNAME`, `MYSQL_PWD`            | its administrator, and the administrator's password     |
+| `SMARTER_ACCOUNT_NUMBER`, `SMARTER_USERNAME`              | the account and the user who own the project            |
+| `SMARTER_REPOSITORY_URL`, `SMARTER_REPOSITORY_ROOT`       | this repository, and the folder it was downloaded into  |
+
+Scripts run once, when the platform is set up, and not again for each new account.
 
 ---
 
