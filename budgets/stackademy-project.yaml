@@ -11,7 +11,7 @@ metadata:
     - example
     - project
   annotations:
-    - smarter.sh/budget/purpose: project budget
+    smarter.sh/budget/purpose: project budget
 spec:
   config:
     unit: cost

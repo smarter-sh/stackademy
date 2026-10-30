@@ -18,10 +18,10 @@ metadata:
     - api
     - sample
   annotations:
-    - smarter.sh/smarter-test-api/creator: QA Team
-    - smarter.sh/smarter-test-api/purpose: unit testing
-    - smarter.sh/smarter-test-api/release-date: 2024-06-15
-    - smarter.sh/smarter-test-api/backward-compatibility: true
+    smarter.sh/smarter-test-api/creator: QA Team
+    smarter.sh/smarter-test-api/purpose: unit testing
+    smarter.sh/smarter-test-api/release-date: "2024-06-15"
+    smarter.sh/smarter-test-api/backward-compatibility: "true"
 spec:
   connection:
     baseUrl: ${environment_platform_scheme}://${environment_platform_domain}
