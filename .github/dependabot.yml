@@ -10,8 +10,6 @@ updates:
     labels:
       - "dependencies"
       - "automated pr"
-    assignees:
-      - "lpm0073"
   # requirements.txt: pre-commit itself, which make init and the checks workflow install.
   - package-ecosystem: "pip"
     directory: "/"
@@ -20,8 +18,6 @@ updates:
     labels:
       - "dependencies"
       - "automated pr"
-    assignees:
-      - "lpm0073"
   # The actions that .github/workflows/checks.yml uses.
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -30,5 +26,3 @@ updates:
     labels:
       - "dependencies"
       - "automated pr"
-    assignees:
-      - "lpm0073"
