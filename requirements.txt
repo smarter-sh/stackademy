@@ -1,3 +1,5 @@
 # The Python packages for working on this repository from your own computer: make init installs them
 # into venv/. Dependabot keeps them current: see .github/dependabot.yml.
 pre-commit==4.7.0
+# The Smarter Python SDK, which the tests in tests/ use to validate each manifest on a Smarter platform.
+smarter-api==1.0.1
