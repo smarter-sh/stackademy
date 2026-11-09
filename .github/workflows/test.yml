@@ -1,0 +1,40 @@
+# Runs make test on every pull request and on every change to main: the unit tests in tests/, which validate
+# each manifest on a Smarter platform with the Smarter Python SDK, then the checks in .pre-commit-config.yaml.
+# The result shows on the pull request.
+#
+# Needs, in the repository's settings (Secrets and variables, Actions):
+#   - the secret SMARTER_API_KEY: an api key of the platform that validates the manifests;
+#   - the variable SMARTER_BASE_URL: that platform's url, e.g. https://platform.example.com.
+# Pull requests from forks don't receive the secret, so their tests stop with an error that says so.
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Validate the manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Get the repository's files
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Run the tests
+        env:
+          SMARTER_API_KEY: ${{ secrets.SMARTER_API_KEY }}
+          SMARTER_BASE_URL: ${{ secrets.SMARTER_BASE_URL }}
+        run: |
+          make init
+          make test
