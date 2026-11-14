@@ -1,0 +1,62 @@
+apiVersion: smarter.sh/v1
+kind: Orchestrator
+metadata:
+  name: stackademy_quarterly_board_pack
+  description: >-
+    The executives' quarterly board pack, from the departments' own assistants. Each department's assistant answers
+    from its own records, in its own account, and is charged to its department; Atlas, the Board Pack, writes the
+    one page from their answers. Only a user who may use every one of them may run it: the chief executive, who is a
+    member of every department.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - executive
+    - orchestrator
+spec:
+  config:
+    strategy: parallel
+    maxIterations: 5
+    isActive: true
+    harnesses:
+      - llmClientName: stackademy_hr_assistant
+        accountNumber: "2718-2818-0002"
+        role: executor
+        executionOrder: 0
+        config:
+          instructions: >-
+            Report on Stackademy's people, the whole company's, for the board, in at most 150 words, with your figures
+            in a table: headcount by department, and the positions that we are hiring for. Never name an individual's
+            salary.
+      - llmClientName: stackademy_accounting_assistant
+        accountNumber: "2718-2818-0003"
+        role: executor
+        executionOrder: 1
+        config:
+          instructions: >-
+            Report on Stackademy's finances for the board, for the period of the objective, in at most 150 words, with
+            your figures in a table, as the tools return them: revenue and expenses by account, the departments most
+            over budget, and the invoices that are overdue. Don't add figures up yourself.
+      - llmClientName: stackademy_content_assistant
+        accountNumber: "2718-2818-0004"
+        role: executor
+        executionOrder: 2
+        config:
+          instructions: >-
+            Report on Stackademy's course production for the board, in at most 150 words, with your figures in a
+            table: the courses still in production, and how many of their lessons are still unpublished.
+      - llmClientName: stackademy_admissions_assistant
+        accountNumber: "2718-2818-0005"
+        role: executor
+        executionOrder: 3
+        config:
+          instructions: >-
+            Report on Stackademy's admissions for the board, for the months of the objective's period, in at most 150
+            words, with your figures in a table: enrollments and tuition, and the largest corporate contracts.
+      - llmClientName: stackademy_board_pack
+        role: summarizer
+        executionOrder: 4
+        config:
+          instructions: >-
+            Write the board pack's one page from the departments' answers above: a short section for each, its
+            figures in a table, then the three points that most need the board's attention. Quote their figures as
+            they are, and check any total with your own tools.

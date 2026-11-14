@@ -52,20 +52,21 @@ repos:
 
   # Each manifest must match the JSON Schema of its kind. The Smarter platform publishes them, in
   # https://github.com/smarter-sh/smarter/tree/main/smarter/smarter/apps/api/v1/contract/sam
-  # Each folder holds manifests of one kind.
+  # Each folder holds manifests of one kind, except a department's connections/, whose Secret and SqlConnection
+  # are told apart by their file names: *-password.yaml and *-db.yaml.
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.39.0
     hooks:
       - id: check-jsonschema
         name: validate Secret manifests
-        files: ^secrets/.*\.ya?ml$
+        files: ^(secrets/.*|departments/[^/]+/connections/.*-password)\.ya?ml$
         args:
           - --schemafile
           - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Secret.schema.json
       - id: check-jsonschema
         name: validate SqlConnection manifests
         types_or: [file]
-        files: ^connections/sql/.*\.ya?ml(\.tpl)?$
+        files: ^(connections/sql/.*|departments/[^/]+/connections/.*-db)\.ya?ml(\.tpl)?$
         args:
           - --default-filetype
           - yaml
@@ -82,7 +83,7 @@ repos:
           - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/ApiConnection.schema.json
       - id: check-jsonschema
         name: validate SqlPlugin manifests
-        files: ^plugins/sql/.*\.ya?ml$
+        files: ^(plugins/sql|departments/[^/]+/plugins)/.*\.ya?ml$
         args:
           - --schemafile
           - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/SqlPlugin.schema.json
@@ -94,7 +95,7 @@ repos:
           - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/ApiPlugin.schema.json
       - id: check-jsonschema
         name: validate LLMClient manifests
-        files: ^llm-clients/.*\.ya?ml$
+        files: ^(departments/[^/]+/)?llm-clients/.*\.ya?ml$
         args:
           - --schemafile
           - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/LLMClient.schema.json
@@ -104,3 +105,27 @@ repos:
         args:
           - --schemafile
           - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Budget.schema.json
+      - id: check-jsonschema
+        name: validate Guardrail manifests
+        files: ^departments/[^/]+/guardrails/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Guardrail.schema.json
+      - id: check-jsonschema
+        name: validate Orchestrator manifests
+        files: ^departments/[^/]+/orchestrators/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Orchestrator.schema.json
+      - id: check-jsonschema
+        name: validate Account manifests
+        files: ^org/accounts/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/Account.schema.json
+      - id: check-jsonschema
+        name: validate User manifests
+        files: ^org/users/.*\.ya?ml$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/smarter-sh/smarter/main/smarter/smarter/apps/api/v1/contract/sam/User.schema.json

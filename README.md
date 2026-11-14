@@ -733,7 +733,8 @@ Every pull request, and every change to `main`, runs a set of checks, listed in
 - the shell script that creates the course database is free of common mistakes ([ShellCheck](https://www.shellcheck.net));
 - **each manifest is a valid manifest of its kind**, checked against the JSON Schema that Smarter publishes for each
   kind: every required setting is there, and every value is of the right type. A mistake here would otherwise only
-  show up when someone applies the file. This is why each folder holds manifests of a single kind.
+  show up when someone applies the file. This is why each folder holds manifests of a single kind, except a
+  department's `connections/`, whose Secrets and SqlConnections are told apart by their file names.
 - the course database loads, and its test users can read the courses but not change them.
 
 A second workflow, [`.github/workflows/test.yml`](.github/workflows/test.yml), runs the unit tests in
@@ -814,9 +815,16 @@ the board pack for Q4 2025"_, and it writes one page from all of its tools: the 
 spending against budget, headcount and payroll, enrollments, and the courses still in production. It reads the
 database as its own user, `stackademy_executive`, which may read only views of totals, so no one's salary, and no
 student, reaches the board, and the database computes every total, so that the board pack's figures add up. A
-department's own assistant answers its members' questions about individuals. Combining the department assistants
-themselves, each behind its own account, is a job for a Smarter Orchestrator, which this repository will use when
-orchestrators can run.
+department's own assistant answers its members' questions about individuals.
+
+The quarterly board pack can also come from the departments themselves. The Orchestrator
+[`stackademy_quarterly_board_pack`](departments/executive/orchestrators/stackademy-quarterly-board-pack.yaml) asks
+each department's assistant for its part of the board pack, in parallel: each answers from its own records, in its
+own account, through its own database user, and is charged to its own department's budget. Atlas then writes the
+one page from their answers, and checks their totals with its own tools. Only someone who may use every one of those
+assistants may run it: the chief executive, who is a member of every department, but not the chief financial
+officer, who isn't a member of HR. Start a run with `POST /api/v1/orchestrators/<id>/runs/` and an objective, such as
+_"Prepare the board pack for Q4 2025"_, then read the run until it has succeeded.
 
 ---
 
