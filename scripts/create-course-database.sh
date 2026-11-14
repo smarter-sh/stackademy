@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------------
-# Creates Stackademy's course database, stackademy, from stackademy.sql.
+# Creates Stackademy's database, stackademy: its course catalogue, from stackademy.sql, and its back
+# office, the tables of its HR, Admissions, Accounting and Course Content departments, from
+# backoffice.sql, which scripts/generate_backoffice.py generates.
 #
 # The database was called smarter_test_db, with the users smarter_test_user and
 # smarter_test_proxy_user. The script leaves an existing smarter_test_db and its users as
@@ -8,11 +10,11 @@
 # it, until a release of Smarter moves them to stackademy. A later version of this
 # script drops it.
 #
-# The script creates the database, its courses table and the 48 courses, and two
-# read-only users, stackademy_catalog and stackademy_catalog_proxy, whose passwords are
-# their names. It replaces the database if it already exists, so running it again
-# resets the catalogue. Then it checks the result: the courses, and that each user may
-# read the database and do nothing else.
+# The script creates the database, its tables and their rows, and a read-only user for
+# each department, whose password is its name, and who may read only its department's
+# tables, as backoffice-grants.txt lists them. It replaces the database if it already
+# exists, so running it again resets it. Then it checks the result: the courses, that the
+# general ledger balances, and that each user may read its tables and nothing else.
 #
 # It connects as a user that may create databases and users, e.g. root, and reads that
 # user's password from the MYSQL_PWD environment variable. Without MYSQL_PWD, it asks
@@ -39,10 +41,14 @@
 # -----------------------------------------------------------------------------------
 set -euo pipefail
 
-SQL_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stackademy.sql"
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SQL_FILES=("$SCRIPTS_DIR/stackademy.sql" "$SCRIPTS_DIR/backoffice.sql")
+GRANTS_FILE="$SCRIPTS_DIR/backoffice-grants.txt"
 DATABASE="stackademy"
-TEST_USERS=(stackademy_catalog stackademy_catalog_proxy)
 EXPECTED_COURSES=48
+# a table that only HR may read: every other user must be refused it.
+SENSITIVE_TABLE="compensation"
+SENSITIVE_TABLE_READER="stackademy_hr"
 DEFAULT_CONTAINER="smarter-mariadb"
 DEFAULT_CONTAINER_PASSWORD="smarter"
 
@@ -88,7 +94,10 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-[ -r "$SQL_FILE" ] || fail "can't read $SQL_FILE"
+for sql_file in "${SQL_FILES[@]}"; do
+    [ -r "$sql_file" ] || fail "can't read $sql_file"
+done
+[ -r "$GRANTS_FILE" ] || fail "can't read $GRANTS_FILE"
 
 # -----------------------------------------------------------------------------------
 # Where to connect, and how.
@@ -153,9 +162,10 @@ report "creating Stackademy's course database, $DATABASE"
 
 version="$(query 'SELECT VERSION();')" || fail "can't connect to $target as $user (see the error above)"
 report "server: $target, version $version, as $user"
-report "sql file: $(basename "$SQL_FILE"), sha256 $(sha256 "$SQL_FILE")"
-
-run_sql <"$SQL_FILE" || fail "$(basename "$SQL_FILE") failed in $target (see the error above)"
+for sql_file in "${SQL_FILES[@]}"; do
+    report "sql file: $(basename "$sql_file"), sha256 $(sha256 "$sql_file")"
+    run_sql <"$sql_file" || fail "$(basename "$sql_file") failed in $target (see the error above)"
+done
 report "loaded in $((SECONDS - started))s"
 
 # -----------------------------------------------------------------------------------
@@ -165,15 +175,35 @@ courses="$(query "SELECT COUNT(*) FROM $DATABASE.courses;")" || fail "can't read
 [ "$courses" = "$EXPECTED_COURSES" ] || fail "$DATABASE.courses has $courses courses, not $EXPECTED_COURSES"
 report "checked: $DATABASE.courses has $courses courses"
 
-for test_user in "${TEST_USERS[@]}"; do
-    readable="$(as_user="$test_user" MYSQL_PWD="$test_user" query "SELECT COUNT(*) FROM $DATABASE.courses;")" ||
-        fail "$test_user can't log in, or can't read $DATABASE.courses"
-    [ "$readable" = "$courses" ] || fail "$test_user reads $readable courses, not $courses"
-    # Exactly two grants: USAGE, i.e. may log in, and SELECT on the database. Anything else is too much.
-    grants="$(query "SHOW GRANTS FOR '$test_user'@'%';")" || fail "can't read the grants of $test_user"
-    others="$(printf '%s\n' "$grants" | grep -v -e '^GRANT USAGE ON \*\.\* TO ' -e "^GRANT SELECT ON \`$DATABASE\`\.\* TO " || true)"
-    [ -z "$others" ] || fail "$test_user has more than read access: $others"
-    report "checked: $test_user may read $DATABASE, and nothing else"
-done
+unbalanced="$(query "SELECT SUM(debit) - SUM(credit) FROM $DATABASE.gl_entries;")" ||
+    fail "can't read $DATABASE.gl_entries"
+[ "$unbalanced" = "0.00" ] || fail "the general ledger doesn't balance: debits exceed credits by $unbalanced"
+report "checked: the general ledger balances"
+
+grants_file_name="$(basename "$GRANTS_FILE")"
+# Each line of the grants file: a user, then the tables that it may read. On file descriptor 3, because
+# docker exec -i reads stdin, and would swallow the rest of the file.
+while read -r db_user tables <&3; do
+    case "$db_user" in "" | "#"*) continue ;; esac
+    expected_grants=0
+    for table in $tables; do
+        as_user="$db_user" MYSQL_PWD="$db_user" query "SELECT COUNT(*) FROM $DATABASE.$table;" >/dev/null ||
+            fail "$db_user can't log in, or can't read $DATABASE.$table"
+        expected_grants=$((expected_grants + 1))
+    done
+    # USAGE, i.e. may log in, and SELECT on each of its tables. Anything else is too much.
+    grants="$(query "SHOW GRANTS FOR '$db_user'@'%';")" || fail "can't read the grants of $db_user"
+    table_grants="$(printf '%s\n' "$grants" | grep -c "^GRANT SELECT ON \`$DATABASE\`\.\`[a-z_]*\` TO " || true)"
+    others="$(printf '%s\n' "$grants" | grep -v -e '^GRANT USAGE ON \*\.\* TO ' -e "^GRANT SELECT ON \`$DATABASE\`\.\`[a-z_]*\` TO " || true)"
+    [ -z "$others" ] || fail "$db_user has more than read access to its tables: $others"
+    [ "$table_grants" = "$expected_grants" ] ||
+        fail "$db_user may read $table_grants tables, not the $expected_grants of $grants_file_name"
+    if [ "$db_user" != "$SENSITIVE_TABLE_READER" ]; then
+        if as_user="$db_user" MYSQL_PWD="$db_user" query "SELECT COUNT(*) FROM $DATABASE.$SENSITIVE_TABLE;" >/dev/null 2>&1; then
+            fail "$db_user may read $DATABASE.$SENSITIVE_TABLE, which only $SENSITIVE_TABLE_READER may"
+        fi
+    fi
+    report "checked: $db_user may read its $expected_grants tables, and nothing else"
+done 3<"$GRANTS_FILE"
 
 report "done in $((SECONDS - started))s"

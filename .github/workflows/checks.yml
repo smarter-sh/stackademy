@@ -50,16 +50,7 @@ jobs:
           ./scripts/create-course-database.sh
           ./scripts/create-course-database.sh
 
-      - name: Check the courses, and that the catalogue users may read them, but not change them
-        run: |
-          set -eu
-          for user in stackademy_catalog stackademy_catalog_proxy; do
-            courses=$(docker exec smarter-mariadb mariadb -u "$user" -p"$user" --batch --skip-column-names \
-              -e 'SELECT COUNT(*) FROM stackademy.courses;')
-            test "$courses" = 48 || { echo "$user sees $courses courses, not 48"; exit 1; }
-            if docker exec smarter-mariadb mariadb -u "$user" -p"$user" \
-              -e "DELETE FROM stackademy.courses WHERE course_code = 'CS101';" 2>/dev/null; then
-              echo "$user may change the courses, but should only read them"; exit 1
-            fi
-          done
-          echo "Both catalogue users read 48 courses, and may not change them."
+      # create-course-database.sh has checked the data, and each department's user: that it may read its
+      # tables, and nothing else. This checks that the generated back office is what its generator makes.
+      - name: Check that the back office is up to date with its generator
+        run: python3 -I scripts/generate_backoffice.py --check

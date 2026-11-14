@@ -755,19 +755,55 @@ make        # list the other shortcuts
 ## The course database
 
 Stanley's SQL advisor reads Stackademy's catalogue from a real database, `stackademy`, whose `courses` table
-holds the 48 courses. [`scripts/stackademy.sql`](scripts/stackademy.sql) creates it: the database, the
-table, the courses, and two users, `stackademy_catalog` and `stackademy_catalog_proxy`, which may read the courses but
-not change them. Their passwords are their names, which is why the
-[SqlConnection](#the-database-connection-connectionssql) and the [Secrets](#secrets-secrets) can be public.
+holds the 48 courses. [`scripts/stackademy.sql`](scripts/stackademy.sql) creates it: the database, the table and the
+courses.
+
+The same database holds Stackademy's back office: the records that its employees work with, and that its departments'
+assistants answer from. Its tables, by department:
+
+| Department          | Tables                                                                                          |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| Everyone            | `departments`, `employees` (a directory: names, titles and managers, but no pay)                |
+| HR                  | `compensation`, `pto_balances`, `pto_requests`, `job_requisitions`                              |
+| Admissions          | `students`, `cohorts`, `enrollments`, `promo_codes`, `payments`, `refunds`, `corporate_contracts` |
+| Accounting          | `chart_of_accounts`, `gl_entries`, `ar_invoices`, `ap_invoices`, `vendors`, `department_budgets`, `expense_reports` |
+| Course Content      | `course_modules`, `lessons`, `assets`, `production_tasks`                                       |
+
+Every name, number and address in it is fictional. It covers one fiscal year, 2025, as of December 31: 40
+employees, 320 students in 45 cohorts, nine companies that buy team licenses, a general ledger that balances, and
+the year's stories, such as AI services that outgrew their budget every month, a few overdue invoices, and three
+courses still being made. [`scripts/generate_backoffice.py`](scripts/generate_backoffice.py) generates it, with a
+fixed random seed, into [`scripts/backoffice.sql`](scripts/backoffice.sql), so that every question has the same
+answer for as long as the data is unchanged. To change the back office, change the generator, run it, and commit
+both:
+
+```console
+python3 scripts/generate_backoffice.py           # write backoffice.sql and backoffice-grants.txt
+python3 scripts/generate_backoffice.py --check   # fail if they're out of date, as the automated checks do
+```
+
+Each department's assistant reads the database as its own user, which may read only its department's tables:
+
+| User                       | May read                                                                     |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `stackademy_catalog`       | the catalogue: `courses`, `cohorts`, `course_modules`, `lessons`             |
+| `stackademy_catalog_proxy` | the same, through a proxy server                                             |
+| `stackademy_hr`            | the directory, and HR's tables, salaries included                            |
+| `stackademy_admissions`    | the catalogue's courses and cohorts, and Admissions' tables                  |
+| `stackademy_accounting`    | the directory, Accounting's tables, and Admissions' sales and payments       |
+| `stackademy_content`       | the directory, the vendors, and the courses and how they're made             |
+
+So the database itself keeps salaries from everyone but HR, whatever an assistant is asked. Their passwords are their
+names, which is why the [SqlConnection](#the-database-connection-connectionssql) and the [Secrets](#secrets-secrets)
+can be public. [`scripts/backoffice-grants.txt`](scripts/backoffice-grants.txt) lists each user's tables.
 
 You don't need to do anything to get it: every Smarter platform creates it when it's set up (see
-[How Smarter loads this repository](#how-smarter-loads-this-repository)). To change the catalogue, change the SQL
-script, and the next platform setup recreates the database from it.
+[How Smarter loads this repository](#how-smarter-loads-this-repository)).
 
-[`scripts/create-course-database.sh`](scripts/create-course-database.sh) runs the SQL script against a MariaDB or
-MySQL server. Running it again replaces the database, so it's also how you reset the catalogue. It connects as a user
-that may create databases and users, e.g. `root`, and reads that user's password from the `MYSQL_PWD` environment
-variable, or asks for it.
+[`scripts/create-course-database.sh`](scripts/create-course-database.sh) runs both SQL scripts against a MariaDB or
+MySQL server. Running it again replaces the database, so it's also how you reset it. It connects as a user that may
+create databases and users, e.g. `root`, and reads that user's password from the `MYSQL_PWD` environment variable,
+or asks for it.
 
 ```console
 make database                                                           # into the smarter-mariadb container
@@ -777,8 +813,9 @@ MYSQL_PWD=... ./scripts/create-course-database.sh --host db.example.com # into a
 ./scripts/create-course-database.sh --help                              # every option
 ```
 
-The automated checks load the script into a new MariaDB server, twice, and check that both users read 48 courses and
-can't change them.
+After loading, the script checks the result: 48 courses, a general ledger whose debits equal its credits, and that
+each user may read its tables and nothing else, and that no one but HR may read salaries. The automated checks load
+the database into a new MariaDB server, twice, and check that the generated files are up to date.
 
 ---
 

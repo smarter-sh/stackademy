@@ -3,16 +3,9 @@
 -- Database: stackademy
 -- ------------------------------------------------------
 --
--- Create the read-only users of stackademy
+-- The course catalogue. backoffice.sql, which create-course-database.sh loads after this file, adds the back
+-- office's tables, and creates the database's read-only users, each with the tables that it may read.
 --
-
-CREATE USER IF NOT EXISTS 'stackademy_catalog_proxy'@'%' IDENTIFIED BY 'stackademy_catalog_proxy';
-GRANT SELECT ON stackademy.* TO 'stackademy_catalog_proxy'@'%';
-
-CREATE USER IF NOT EXISTS 'stackademy_catalog'@'%' IDENTIFIED BY 'stackademy_catalog';
-GRANT SELECT ON stackademy.* TO 'stackademy_catalog'@'%';
-
-FLUSH PRIVILEGES;
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
