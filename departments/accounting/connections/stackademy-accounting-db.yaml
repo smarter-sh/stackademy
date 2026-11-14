@@ -1,0 +1,26 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  description: >-
+    Read-only connection to Stackademy Accounting's tables of the stackademy database, as stackademy_accounting, which may read the directory, Accounting's tables, and Admissions' sales and payments,
+    and nothing else. It belongs to Stackademy Accounting, where only its members may use it, and the head of IT, who
+    administers the department's account, manages it.
+  name: stackademy_accounting_db
+  version: 1.0.0
+  tags:
+    - stackademy
+    - accounting
+    - sql
+spec:
+  connection:
+    authenticationMethod: tcpip
+    database: stackademy
+    dbEngine: django.db.backends.mysql
+    username: stackademy_accounting
+    hostname: smarter-mariadb
+    maxOverflow: 10
+    password: stackademy_accounting_db_password # the name of a Secret, not the password itself
+    poolSize: 5
+    port: 3306
+    timeout: 30
+    useSsl: false

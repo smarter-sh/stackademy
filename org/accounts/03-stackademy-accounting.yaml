@@ -1,0 +1,23 @@
+apiVersion: smarter.sh/v1
+kind: Account
+metadata:
+  name: stackademy_accounting
+  accountNumber: "2718-2818-0003"
+  description: >-
+    Stackademy's finance and accounting department: its books, receivables, payables and budgets. It shares nothing.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - organization
+spec:
+  config:
+    companyName: Stackademy Accounting
+    address1: 1 Example Way
+    city: Austin
+    state: TX
+    postalCode: "73301"
+    country: US
+    language: en-US
+    timezone: America/Chicago
+    currency: USD
+    parent: "2718-2818-0000"

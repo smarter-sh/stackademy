@@ -1,0 +1,23 @@
+apiVersion: smarter.sh/v1
+kind: Account
+metadata:
+  name: stackademy_hr
+  accountNumber: "2718-2818-0002"
+  description: >-
+    Stackademy's HR department: its people, their pay, time off and hiring. It shares nothing: only its members may read its resources.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - organization
+spec:
+  config:
+    companyName: Stackademy HR
+    address1: 1 Example Way
+    city: Austin
+    state: TX
+    postalCode: "73301"
+    country: US
+    language: en-US
+    timezone: America/Chicago
+    currency: USD
+    parent: "2718-2818-0000"

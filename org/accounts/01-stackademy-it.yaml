@@ -1,0 +1,24 @@
+apiVersion: smarter.sh/v1
+kind: Account
+metadata:
+  name: stackademy_it
+  accountNumber: "2718-2818-0001"
+  description: >-
+    Stackademy's IT department, which runs the services that the whole company uses. It shares its resources with every account of Stackademy Corp.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - organization
+spec:
+  config:
+    companyName: Stackademy IT
+    address1: 1 Example Way
+    city: Austin
+    state: TX
+    postalCode: "73301"
+    country: US
+    language: en-US
+    timezone: America/Chicago
+    currency: USD
+    parent: "2718-2818-0000"
+    shareScope: "2718-2818-0000"

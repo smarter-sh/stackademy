@@ -1,0 +1,26 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  description: >-
+    Read-only connection to Stackademy Course Content's tables of the stackademy database, as stackademy_content, which may read the directory, the vendors, and the courses and how they're made,
+    and nothing else. It belongs to Stackademy Course Content, where only its members may use it, and the head of IT, who
+    administers the department's account, manages it.
+  name: stackademy_content_db
+  version: 1.0.0
+  tags:
+    - stackademy
+    - content
+    - sql
+spec:
+  connection:
+    authenticationMethod: tcpip
+    database: stackademy
+    dbEngine: django.db.backends.mysql
+    username: stackademy_content
+    hostname: smarter-mariadb
+    maxOverflow: 10
+    password: stackademy_content_db_password # the name of a Secret, not the password itself
+    poolSize: 5
+    port: 3306
+    timeout: 30
+    useSsl: false

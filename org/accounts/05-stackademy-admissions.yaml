@@ -1,0 +1,23 @@
+apiVersion: smarter.sh/v1
+kind: Account
+metadata:
+  name: stackademy_admissions
+  accountNumber: "2718-2818-0005"
+  description: >-
+    Stackademy's admissions and sales department: its students, enrollments and corporate customers. It shares nothing.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - organization
+spec:
+  config:
+    companyName: Stackademy Admissions
+    address1: 1 Example Way
+    city: Austin
+    state: TX
+    postalCode: "73301"
+    country: US
+    language: en-US
+    timezone: America/Chicago
+    currency: USD
+    parent: "2718-2818-0000"

@@ -46,6 +46,7 @@ Smarter web console and a web browser, you have everything you need. This page e
 - [Make it your own](#make-it-your-own)
 - [The Smarter extension for VS Code](#the-smarter-extension-for-vs-code)
 - [The automated checks](#the-automated-checks)
+- [Stackademy's organization](#stackademys-organization)
 - [The course database](#the-course-database)
 - [How Smarter loads this repository](#how-smarter-loads-this-repository)
 - [Learn more](#learn-more)
@@ -210,13 +211,16 @@ folders group the manifests by kind:
 
 | Folder                                               | What's in it                                                                |
 | ---------------------------------------------------- | --------------------------------------------------------------------------- |
-| [`secrets/`](secrets/)                               | The passwords of the test database and of the course catalogue's API        |
+| [`secrets/`](secrets/)                               | The passwords of the course database, the catalogue's API, and demo users    |
 | [`connections/sql/`](connections/sql/)               | How to reach the course database                                            |
 | [`connections/api/`](connections/api/)               | How to reach the course catalogue's API                                     |
 | [`plugins/sql/`](plugins/sql/)                       | The tool that searches the database, and its SQL query                      |
 | [`plugins/api/`](plugins/api/)                       | The tool that searches the API                                              |
 | [`llm-clients/`](llm-clients/)                       | The two Stanleys: their model, instructions, chat text and colors           |
 | [`budgets/`](budgets/)                               | The project's spending limits                                               |
+| [`org/`](org/)                                       | Stackademy's organization: its accounts, and the people who may sign in     |
+| [`departments/`](departments/)                       | Each department's own resources, e.g. its database connection               |
+| [`owners.yaml`](owners.yaml)                         | Which department, and which person, owns each folder of `departments/`      |
 | [`scripts/`](scripts/)                               | Not manifests: the scripts that Smarter runs, e.g. to create the database   |
 | [`Makefile`](Makefile)                               | Shortcuts for your own computer: `make init`, `make check`, `make database` |
 | [`.github/`](.github/)                               | GitHub's settings for this repository: the automated checks, and Dependabot |
@@ -749,6 +753,39 @@ make        # list the other shortcuts
 ```
 
 </details>
+
+---
+
+## Stackademy's organization
+
+Stackademy is a company, with departments, and its AI resources belong to the departments that use them. In
+Smarter, each department is an **account**, and the accounts form a tree, as the company does. Each account decides
+who may read its resources. [`org/accounts/`](org/accounts/) declares them:
+
+| Account                   | Number           | Under           | Who may read its resources                             |
+| ------------------------- | ---------------- | --------------- | ------------------------------------------------------ |
+| Stackademy Corp           | `2718-2818-0000` |                 | its members: the executives                            |
+| Stackademy IT             | `2718-2818-0001` | Stackademy Corp | every account of Stackademy, e.g. its PII guardrail    |
+| Stackademy HR             | `2718-2818-0002` | Stackademy Corp | its members only                                       |
+| Stackademy Accounting     | `2718-2818-0003` | Stackademy Corp | its members only                                       |
+| Stackademy Course Content | `2718-2818-0004` | Stackademy Corp | its members only                                       |
+| Stackademy Admissions     | `2718-2818-0005` | Stackademy Corp | its members only                                       |
+
+[`org/users/`](org/users/) declares ten of its employees, who may sign in, and the accounts that each belongs to.
+Some of them **administer** an account: they manage every resource in it, and only in it. The chief executive is a
+member of every department; the head of IT administers every department's account, to manage its credentials; each
+department's head administers their department; and a few of their staff are ordinary members. They are fictional,
+the same people as in the back office, and every one of them signs in with the published password
+`stackademy-demo`, the value of the Secret [`stackademy_demo_password`](secrets/stackademy-demo-password.yaml).
+
+Each department's resources are in its folder of [`departments/`](departments/), and
+[`owners.yaml`](owners.yaml) says who owns each folder: HR's head owns `departments/hr/`, in Stackademy HR, and so
+on. Each department's `connections/` folder, its database credentials, belongs to the head of IT, in the
+department's account. So HR's connection, whose database user may read salaries, is in Stackademy HR, where only
+HR's members may use it, and Stackademy IT shares only what the whole company may use. When Smarter loads this
+repository into a platform, it applies each folder as its owner.
+[`scripts/generate_backoffice.py`](scripts/generate_backoffice.py) writes `org/users/` and `owners.yaml`, from
+the employees of the back office: change the generator, not the files.
 
 ---
 

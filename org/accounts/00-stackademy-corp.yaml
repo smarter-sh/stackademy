@@ -1,0 +1,22 @@
+apiVersion: smarter.sh/v1
+kind: Account
+metadata:
+  name: stackademy_corp
+  accountNumber: "2718-2818-0000"
+  description: >-
+    Stackademy, the fictional online code academy: the company, and its executive office. Its departments are the accounts below it.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - organization
+spec:
+  config:
+    companyName: Stackademy Corp
+    address1: 1 Example Way
+    city: Austin
+    state: TX
+    postalCode: "73301"
+    country: US
+    language: en-US
+    timezone: America/Chicago
+    currency: USD

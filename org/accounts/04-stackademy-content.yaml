@@ -1,0 +1,23 @@
+apiVersion: smarter.sh/v1
+kind: Account
+metadata:
+  name: stackademy_content
+  accountNumber: "2718-2818-0004"
+  description: >-
+    Stackademy's course content department, which designs and produces the courses, with freelance artists and video studios. It shares nothing.
+  version: 1.0.0
+  tags:
+    - stackademy
+    - organization
+spec:
+  config:
+    companyName: Stackademy Course Content
+    address1: 1 Example Way
+    city: Austin
+    state: TX
+    postalCode: "73301"
+    country: US
+    language: en-US
+    timezone: America/Chicago
+    currency: USD
+    parent: "2718-2818-0000"

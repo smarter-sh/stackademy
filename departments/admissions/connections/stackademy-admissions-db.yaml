@@ -1,0 +1,26 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  description: >-
+    Read-only connection to Stackademy Admissions's tables of the stackademy database, as stackademy_admissions, which may read the catalogue's courses and cohorts, and Admissions' tables,
+    and nothing else. It belongs to Stackademy Admissions, where only its members may use it, and the head of IT, who
+    administers the department's account, manages it.
+  name: stackademy_admissions_db
+  version: 1.0.0
+  tags:
+    - stackademy
+    - admissions
+    - sql
+spec:
+  connection:
+    authenticationMethod: tcpip
+    database: stackademy
+    dbEngine: django.db.backends.mysql
+    username: stackademy_admissions
+    hostname: smarter-mariadb
+    maxOverflow: 10
+    password: stackademy_admissions_db_password # the name of a Secret, not the password itself
+    poolSize: 5
+    port: 3306
+    timeout: 30
+    useSsl: false

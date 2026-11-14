@@ -1,0 +1,26 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  description: >-
+    Read-only connection to Stackademy HR's tables of the stackademy database, as stackademy_hr, which may read the directory, and HR's tables: compensation, time off and hiring,
+    and nothing else. It belongs to Stackademy HR, where only its members may use it, and the head of IT, who
+    administers the department's account, manages it.
+  name: stackademy_hr_db
+  version: 1.0.0
+  tags:
+    - stackademy
+    - hr
+    - sql
+spec:
+  connection:
+    authenticationMethod: tcpip
+    database: stackademy
+    dbEngine: django.db.backends.mysql
+    username: stackademy_hr
+    hostname: smarter-mariadb
+    maxOverflow: 10
+    password: stackademy_hr_db_password # the name of a Secret, not the password itself
+    poolSize: 5
+    port: 3306
+    timeout: 30
+    useSsl: false

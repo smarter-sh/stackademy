@@ -1,0 +1,26 @@
+apiVersion: smarter.sh/v1
+kind: Guardrail
+metadata:
+  description: >-
+    Stackademy IT's company-wide guardrail: it redacts credit card numbers and social security numbers from every
+    message to an assistant that lists it. Stackademy IT shares it with every department of Stackademy Corp.
+  name: stackademy_pii_redaction
+  version: 1.0.0
+  tags:
+    - stackademy
+    - it
+    - pii
+spec:
+  config:
+    strategy: detector
+    category: pii
+    detectors:
+      - credit_card
+      - us_ssn
+    action: redact
+    replacement: "[REDACTED {label}]"
+    stage: input
+    mode: enforce
+    priority: 10
+    severity: 4
+    isActive: true
