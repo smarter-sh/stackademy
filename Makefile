@@ -8,7 +8,8 @@ help:
 	@echo "make init      set up this clone: a Python virtual environment in $(VENV)/, with pre-commit,"
 	@echo "               whose checks then run before each commit"
 	@echo "make check     run the automated checks on every file"
-	@echo "make test      validate every manifest on a Smarter platform (needs SMARTER_API_KEY), then make check"
+	@echo "make test      run the unit tests, with coverage, validating every manifest on a Smarter platform"
+	@echo "               (needs SMARTER_API_KEY), then make check"
 	@echo "make database  create the database, stackademy, in the smarter-mariadb Docker container"
 	@echo "               (see scripts/create-course-database.sh --help for another container or server)"
 	@echo "make clean     remove $(VENV)/"
@@ -29,7 +30,8 @@ check:
 
 test:
 	@[ -x $(VENV)/bin/python ] || { echo "Run 'make init' first."; exit 1; }
-	$(VENV)/bin/python -m unittest discover -s tests -v
+	$(VENV)/bin/python -m coverage run --source=scripts -m unittest discover -s tests -v
+	$(VENV)/bin/python -m coverage report -m
 	$(MAKE) check
 
 database:

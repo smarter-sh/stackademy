@@ -1,6 +1,7 @@
 # Stackademy
 
 [![Checks](https://github.com/smarter-sh/stackademy/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/smarter-sh/stackademy/actions/workflows/checks.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/smarter-sh/stackademy/main?label=coverage&logo=codecov)](https://codecov.io/gh/smarter-sh/stackademy)
 [![Docs](https://img.shields.io/badge/Read%20the%20Docs-smarter.sh-blue?logo=readthedocs)](https://docs.smarter.sh/en/latest/smarter-framework/smarter-manifests/stackademy.html)
 [![Website](https://img.shields.io/badge/official%20web%20site-smarter.sh-blue?logo=google-chrome)](https://smarter.sh)
 [![Slack](https://img.shields.io/badge/Slack-The%20Smarter%20Project-4A154B?logo=slack&logoColor=white)](https://join.slack.com/t/thesmarterproject/shared_invite/zt-4f0t6v46q-e2c5Of4hS4fBr_XwfQARCw)
@@ -735,6 +736,11 @@ Every pull request, and every change to `main`, runs a set of checks, listed in
   show up when someone applies the file. This is why each folder holds manifests of a single kind.
 - the course database loads, and its test users can read the courses but not change them.
 
+A second workflow, [`.github/workflows/test.yml`](.github/workflows/test.yml), runs the unit tests in
+[`tests/`](tests/): they send every manifest to a Smarter platform, which validates it as `apply` would, without
+applying it, and they test the generator of the back office. The Coverage badge at the top of this page is the share
+of the generator's code that those tests run, reported by [Codecov](https://codecov.io/gh/smarter-sh/stackademy).
+
 If a check fails, open its details, fix the file on your branch, and commit again: the checks run again.
 
 **Dependabot**, GitHub's update robot, keeps the checks themselves up to date. Once a month it looks for new versions
@@ -786,6 +792,21 @@ HR's members may use it, and Stackademy IT shares only what the whole company ma
 repository into a platform, it applies each folder as its owner.
 [`scripts/generate_backoffice.py`](scripts/generate_backoffice.py) writes `org/users/` and `owners.yaml`, from
 the employees of the back office: change the generator, not the files.
+
+Four departments have an assistant of their own, over their own records in the back office, in their folder's
+`llm-clients/`, with the SQL tools it uses in `plugins/`:
+
+| Assistant | Department     | Answers questions such as                                   | Owned by                    |
+| --------- | -------------- | ----------------------------------------------------------- | --------------------------- |
+| Harper    | HR             | _"What is our headcount and average salary by department?"_ | the HR Director             |
+| Ledger    | Accounting     | _"Which departments went over budget in December?"_         | the Chief Financial Officer |
+| Reel      | Course Content | _"Which courses still have unpublished lessons?"_           | the Head of Course Content  |
+| Ada       | Admissions     | _"Which companies have the largest contracts?"_             | the Admissions Director     |
+
+Each connects through its department's own connection, so the database itself keeps HR's salaries from Ada, and
+each uses Stackademy IT's PII guardrail, which IT shares with every department. Each has a budget, in
+[`budgets/`](budgets/), of $150 a month and $1,800 in all. Their owners decide whether to publish them, so loading
+this repository leaves them undeployed: sign in as a department's head, and try its assistant in the workbench.
 
 ---
 

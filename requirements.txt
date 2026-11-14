@@ -3,3 +3,5 @@
 pre-commit==4.7.0
 # The Smarter Python SDK, which the tests in tests/ use to validate each manifest on a Smarter platform.
 smarter-api==1.0.1
+# Measures how much of scripts/ the tests run: make test reports it, and the Test workflow sends it to Codecov.
+coverage==7.17.3
