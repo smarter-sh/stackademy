@@ -68,7 +68,7 @@ spec:
     - name: max_cost
       value: 1000
     urlParams: null
-  connection: smarter_test_api
+  connection: stackademy_catalog_api
   prompt:
     maxTokens: 2048
     model: gpt-6-luna

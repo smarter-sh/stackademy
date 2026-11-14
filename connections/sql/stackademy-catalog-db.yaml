@@ -1,0 +1,25 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  description: Read-only connection to Stackademy's course catalogue, the courses table of the stackademy database at smarter-mariadb:3306
+  name: stackademy_catalog_db
+  tags:
+    - stackademy
+    - sql
+  annotations:
+    smarter.sh/stackademy/owner: Stackademy IT
+    smarter.sh/stackademy/purpose: the course catalogue, for the Stackademy SQL advisor
+  version: 1.0.0
+spec:
+  connection:
+    authenticationMethod: tcpip
+    database: stackademy
+    dbEngine: django.db.backends.mysql
+    username: stackademy_catalog
+    hostname: smarter-mariadb
+    maxOverflow: 10
+    password: stackademy_catalog_db_password # the name of a Secret, not the password itself
+    poolSize: 5
+    port: 3306
+    timeout: 30
+    useSsl: false

@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # -----------------------------------------------------------------------------------
-# Creates Stackademy's course database, smarter_test_db, from smarter_test_db.sql.
+# Creates Stackademy's course database, stackademy, from stackademy.sql.
+#
+# The database was called smarter_test_db, with the users smarter_test_user and
+# smarter_test_proxy_user. The script leaves an existing smarter_test_db and its users as
+# they are: the Stackademy plugins that accounts copied before the rename still read
+# it, until a release of Smarter moves them to stackademy. A later version of this
+# script drops it.
 #
 # The script creates the database, its courses table and the 48 courses, and two
-# read-only users, smarter_test_user and smarter_test_proxy_user, whose passwords are
+# read-only users, stackademy_catalog and stackademy_catalog_proxy, whose passwords are
 # their names. It replaces the database if it already exists, so running it again
 # resets the catalogue. Then it checks the result: the courses, and that each user may
 # read the database and do nothing else.
@@ -33,9 +39,9 @@
 # -----------------------------------------------------------------------------------
 set -euo pipefail
 
-SQL_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/smarter_test_db.sql"
-DATABASE="smarter_test_db"
-TEST_USERS=(smarter_test_user smarter_test_proxy_user)
+SQL_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stackademy.sql"
+DATABASE="stackademy"
+TEST_USERS=(stackademy_catalog stackademy_catalog_proxy)
 EXPECTED_COURSES=48
 DEFAULT_CONTAINER="smarter-mariadb"
 DEFAULT_CONTAINER_PASSWORD="smarter"
@@ -122,7 +128,7 @@ export MYSQL_PWD
 
 # Run SQL as $user, or as $as_user, with $MYSQL_PWD, e.g.
 #   run_sql -e 'SELECT 1'
-#   as_user=smarter_test_user MYSQL_PWD=smarter_test_user run_sql -e 'SELECT 1'
+#   as_user=stackademy_catalog MYSQL_PWD=stackademy_catalog run_sql -e 'SELECT 1'
 run_sql() {
     local login="${as_user:-$user}"
     if [ -n "$host" ]; then

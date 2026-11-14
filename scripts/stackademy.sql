@@ -1,16 +1,16 @@
 -- Compatible with MariaDB 10.6+ / 11.x and MySQL 8.x
 --
--- Database: smarter_test_db
+-- Database: stackademy
 -- ------------------------------------------------------
 --
--- Create read-only test users for smarter_test_db
+-- Create the read-only users of stackademy
 --
 
-CREATE USER IF NOT EXISTS 'smarter_test_proxy_user'@'%' IDENTIFIED BY 'smarter_test_proxy_user';
-GRANT SELECT ON smarter_test_db.* TO 'smarter_test_proxy_user'@'%';
+CREATE USER IF NOT EXISTS 'stackademy_catalog_proxy'@'%' IDENTIFIED BY 'stackademy_catalog_proxy';
+GRANT SELECT ON stackademy.* TO 'stackademy_catalog_proxy'@'%';
 
-CREATE USER IF NOT EXISTS 'smarter_test_user'@'%' IDENTIFIED BY 'smarter_test_user';
-GRANT SELECT ON smarter_test_db.* TO 'smarter_test_user'@'%';
+CREATE USER IF NOT EXISTS 'stackademy_catalog'@'%' IDENTIFIED BY 'stackademy_catalog';
+GRANT SELECT ON stackademy.* TO 'stackademy_catalog'@'%';
 
 FLUSH PRIVILEGES;
 
@@ -26,14 +26,14 @@ FLUSH PRIVILEGES;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Current Database: `smarter_test_db`
+-- Current Database: `stackademy`
 --
 
-/*!40000 DROP DATABASE IF EXISTS `smarter_test_db`*/;
+/*!40000 DROP DATABASE IF EXISTS `stackademy`*/;
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `smarter_test_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `stackademy` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE `smarter_test_db`;
+USE `stackademy`;
 
 --
 -- Table structure for table `courses`

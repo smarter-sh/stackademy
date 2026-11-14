@@ -166,12 +166,12 @@ which depends on others:
 ```mermaid
 flowchart LR
     subgraph secrets["🔑 Secrets"]
-        S1["smarter_test_user<br/>(database password)"]
-        S2["smarter_test_api<br/>(API key)"]
+        S1["stackademy_catalog_db_password<br/>(database password)"]
+        S2["stackademy_catalog_api_key<br/>(API key)"]
     end
     subgraph connections["🔌 Connections"]
-        C1["smarter_test_db<br/>SqlConnection"]
-        C2["smarter_test_api<br/>ApiConnection"]
+        C1["stackademy_catalog_db<br/>SqlConnection"]
+        C2["stackademy_catalog_api<br/>ApiConnection"]
     end
     subgraph tools["🛠️ Plugins (tools)"]
         P1["stackademy_sql<br/>SqlPlugin"]
@@ -445,19 +445,19 @@ manifest in the web console.
 ```yaml
 kind: Secret
 metadata:
-  name: smarter_test_user
+  name: stackademy_catalog_db_password
 spec:
   config:
-    value: smarter_test_user
+    value: stackademy_catalog
 ```
 
 A Secret holds one sensitive value, such as a password or an API key. Smarter encrypts it, and the web console shows
 only its last few characters. Other resources refer to a Secret by its **name**, never by its value, so that the
 password appears in exactly one place, and changing it means changing one Secret.
 
-- `smarter_test_user` is the password of the course database.
-- `smarter_test_api` is the password of the course catalogue's API.
-- `smarter_test_db_proxy_password` is a password for reaching the database through a proxy server. The connection
+- `stackademy_catalog_db_password` is the password of the course database's read-only user, `stackademy_catalog`.
+- `stackademy_catalog_api_key` is the password of the course catalogue's API.
+- `stackademy_catalog_db_proxy_password` is a password for reaching the database through a proxy server. The connection
   in this project connects directly and doesn't use it, but it's here for a project that would.
 
 Their `annotations` record where each password is used, for people who read the file.
@@ -472,9 +472,9 @@ spec:
     dbEngine: django.db.backends.mysql
     hostname: smarter-mariadb
     port: 3306
-    database: smarter_test_db
-    username: smarter_test_user
-    password: smarter_test_user # the name of a Secret, not the password itself
+    database: stackademy
+    username: stackademy_catalog
+    password: stackademy_catalog_db_password # the name of a Secret, not the password itself
     useSsl: false
     timeout: 30
     poolSize: 5
@@ -494,7 +494,7 @@ spec:
   connection:
     baseUrl: ${environment_platform_scheme}://${environment_platform_domain}
     authMethod: token
-    apiKey: smarter_test_api # the name of a Secret
+    apiKey: stackademy_catalog_api_key # the name of a Secret
     timeout: 30
 ```
 
@@ -520,7 +520,7 @@ A SqlPlugin turns a SQL query into a tool that the AI model can call. Its spec h
 - **`prompt`** holds the tool's own model settings: `provider`, `model`, `temperature` (how creative the model may
   be) and `maxTokens` (how long its answers may be), and a `systemRole`, the instructions to the model. Here they
   tell Stanley to rely on the tool, and to decline questions that aren't about Stackademy.
-- **`connection`** names the SqlConnection to use: `smarter_test_db`.
+- **`connection`** names the SqlConnection to use: `stackademy_catalog_db`.
 - **`sqlData`** is the query, and its **parameters**: the filters that the model may fill in.
 
 ```yaml
@@ -754,9 +754,9 @@ make        # list the other shortcuts
 
 ## The course database
 
-Stanley's SQL advisor reads Stackademy's catalogue from a real database, `smarter_test_db`, whose `courses` table
-holds the 48 courses. [`scripts/smarter_test_db.sql`](scripts/smarter_test_db.sql) creates it: the database, the
-table, the courses, and two users, `smarter_test_user` and `smarter_test_proxy_user`, which may read the courses but
+Stanley's SQL advisor reads Stackademy's catalogue from a real database, `stackademy`, whose `courses` table
+holds the 48 courses. [`scripts/stackademy.sql`](scripts/stackademy.sql) creates it: the database, the
+table, the courses, and two users, `stackademy_catalog` and `stackademy_catalog_proxy`, which may read the courses but
 not change them. Their passwords are their names, which is why the
 [SqlConnection](#the-database-connection-connectionssql) and the [Secrets](#secrets-secrets) can be public.
 
@@ -800,7 +800,7 @@ create them in its [`scripts/`](scripts/) folder, which never holds manifests, a
 scripts:
   - path: create-course-database.sh # in scripts/
     stage: pre # pre: before the manifests are applied. post: after
-    description: Create the course database, smarter_test_db, ...
+    description: Create the course database, stackademy, ...
     timeout: 300 # seconds; optional
 ```
 

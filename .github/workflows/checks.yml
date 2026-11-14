@@ -50,16 +50,16 @@ jobs:
           ./scripts/create-course-database.sh
           ./scripts/create-course-database.sh
 
-      - name: Check the courses, and that the test users may read them, but not change them
+      - name: Check the courses, and that the catalogue users may read them, but not change them
         run: |
           set -eu
-          for user in smarter_test_user smarter_test_proxy_user; do
+          for user in stackademy_catalog stackademy_catalog_proxy; do
             courses=$(docker exec smarter-mariadb mariadb -u "$user" -p"$user" --batch --skip-column-names \
-              -e 'SELECT COUNT(*) FROM smarter_test_db.courses;')
+              -e 'SELECT COUNT(*) FROM stackademy.courses;')
             test "$courses" = 48 || { echo "$user sees $courses courses, not 48"; exit 1; }
             if docker exec smarter-mariadb mariadb -u "$user" -p"$user" \
-              -e "DELETE FROM smarter_test_db.courses WHERE course_code = 'CS101';" 2>/dev/null; then
+              -e "DELETE FROM stackademy.courses WHERE course_code = 'CS101';" 2>/dev/null; then
               echo "$user may change the courses, but should only read them"; exit 1
             fi
           done
-          echo "Both test users read 48 courses, and may not change them."
+          echo "Both catalogue users read 48 courses, and may not change them."

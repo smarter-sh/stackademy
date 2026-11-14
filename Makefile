@@ -9,7 +9,7 @@ help:
 	@echo "               whose checks then run before each commit"
 	@echo "make check     run the automated checks on every file"
 	@echo "make test      validate every manifest on a Smarter platform (needs SMARTER_API_KEY), then make check"
-	@echo "make database  create the course database, smarter_test_db, in the smarter-mariadb Docker container"
+	@echo "make database  create the course database, stackademy, in the smarter-mariadb Docker container"
 	@echo "               (see scripts/create-course-database.sh --help for another container or server)"
 	@echo "make clean     remove $(VENV)/"
 
