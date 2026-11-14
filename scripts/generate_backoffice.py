@@ -63,15 +63,17 @@ BOARD_VIEWS: dict[str, str] = {
           AND c.effective_date = (SELECT MAX(c2.effective_date) FROM compensation c2 WHERE c2.employee_id = e.employee_id)
         GROUP BY d.name
     """,
-    "board_income_statement": """
+    # The ledger and the enrollments start in December 2024, with tuition paid ahead for January's cohorts: every
+    # view that totals by quarter or month keeps to the fiscal year, or those rows would count as its December.
+    "board_income_statement": f"""
         SELECT QUARTER(g.entry_date) AS fiscal_quarter, MONTH(g.entry_date) AS fiscal_month, a.account_type, a.name AS account,
           CASE WHEN a.account_type = 'revenue' THEN SUM(g.credit - g.debit) ELSE SUM(g.debit - g.credit) END AS amount
         FROM gl_entries g
         JOIN chart_of_accounts a ON a.gl_account = g.gl_account
-        WHERE a.account_type IN ('revenue', 'expense')
+        WHERE a.account_type IN ('revenue', 'expense') AND YEAR(g.entry_date) = {FISCAL_YEAR}
         GROUP BY QUARTER(g.entry_date), MONTH(g.entry_date), a.account_type, a.gl_account, a.name
     """,
-    "board_budget_vs_actual": """
+    "board_budget_vs_actual": f"""
         SELECT d.name AS department, CEIL(b.fiscal_month / 3) AS fiscal_quarter, b.fiscal_month,
           SUM(b.budget_amount) AS budget,
           SUM((SELECT COALESCE(SUM(g.debit - g.credit), 0) FROM gl_entries g
@@ -79,14 +81,16 @@ BOARD_VIEWS: dict[str, str] = {
                  AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month)) AS actual
         FROM department_budgets b
         JOIN departments d ON d.department_id = b.department_id
+        WHERE b.fiscal_year = {FISCAL_YEAR}
         GROUP BY d.name, b.fiscal_month
     """,
-    "board_enrollments": """
+    "board_enrollments": f"""
         SELECT QUARTER(e.enrolled_on) AS fiscal_quarter, MONTH(e.enrolled_on) AS fiscal_month, c.course_code, c.course_name,
           COUNT(*) AS enrollments, SUM(e.price_paid) AS tuition, SUM(e.status = 'withdrawn') AS withdrawals
         FROM enrollments e
         JOIN cohorts h ON h.cohort_id = e.cohort_id
         JOIN courses c ON c.course_id = h.course_id
+        WHERE YEAR(e.enrolled_on) = {FISCAL_YEAR}
         GROUP BY QUARTER(e.enrolled_on), MONTH(e.enrolled_on), c.course_code, c.course_name
     """,
     "board_course_production": """

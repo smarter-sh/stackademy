@@ -28,7 +28,8 @@ spec:
       FROM enrollments e
       JOIN cohorts h ON h.cohort_id = e.cohort_id
       JOIN courses c ON c.course_id = h.course_id
-      WHERE (c.course_code = {course_code} OR {course_code} IS NULL)
+      WHERE YEAR(e.enrolled_on) = 2025
+        AND (c.course_code = {course_code} OR {course_code} IS NULL)
         AND (MONTH(e.enrolled_on) = {month} OR {month} IS NULL)
       GROUP BY c.course_code, c.course_name
       ORDER BY tuition DESC;

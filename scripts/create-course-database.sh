@@ -46,6 +46,8 @@ SQL_FILES=("$SCRIPTS_DIR/stackademy.sql" "$SCRIPTS_DIR/backoffice.sql")
 GRANTS_FILE="$SCRIPTS_DIR/backoffice-grants.txt"
 DATABASE="stackademy"
 EXPECTED_COURSES=48
+# the back office's fiscal year: the Board Pack's views total it, and nothing from another year.
+FISCAL_YEAR=2025
 # a table that only HR may read: every other user must be refused it.
 SENSITIVE_TABLE="compensation"
 SENSITIVE_TABLE_READER="stackademy_hr"
@@ -179,6 +181,22 @@ unbalanced="$(query "SELECT SUM(debit) - SUM(credit) FROM $DATABASE.gl_entries;"
     fail "can't read $DATABASE.gl_entries"
 [ "$unbalanced" = "0.00" ] || fail "the general ledger doesn't balance: debits exceed credits by $unbalanced"
 report "checked: the general ledger balances"
+
+# The Board Pack's views total one fiscal year: the ledger and the enrollments start in the December before it.
+board_revenue="$(query "SELECT SUM(amount) FROM $DATABASE.board_income_statement WHERE account_type = 'revenue';")" ||
+    fail "can't read $DATABASE.board_income_statement"
+ledger_revenue="$(query "SELECT SUM(g.credit - g.debit) FROM $DATABASE.gl_entries g JOIN $DATABASE.chart_of_accounts a
+    ON a.gl_account = g.gl_account WHERE a.account_type = 'revenue' AND YEAR(g.entry_date) = $FISCAL_YEAR;")" ||
+    fail "can't read $DATABASE.gl_entries"
+[ "$board_revenue" = "$ledger_revenue" ] ||
+    fail "board_income_statement's revenue is $board_revenue, not the ledger's $ledger_revenue for $FISCAL_YEAR"
+board_enrollments="$(query "SELECT SUM(enrollments) FROM $DATABASE.board_enrollments;")" ||
+    fail "can't read $DATABASE.board_enrollments"
+year_enrollments="$(query "SELECT COUNT(*) FROM $DATABASE.enrollments WHERE YEAR(enrolled_on) = $FISCAL_YEAR;")" ||
+    fail "can't read $DATABASE.enrollments"
+[ "$board_enrollments" = "$year_enrollments" ] ||
+    fail "board_enrollments counts $board_enrollments enrollments, not the $year_enrollments of $FISCAL_YEAR"
+report "checked: the Board Pack's views total $FISCAL_YEAR, and nothing else"
 
 grants_file_name="$(basename "$GRANTS_FILE")"
 # Each line of the grants file: a user, then the tables that it may read. On file descriptor 3, because

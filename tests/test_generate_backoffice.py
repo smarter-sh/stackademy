@@ -141,6 +141,14 @@ class TestBackoffice(unittest.TestCase):
             self.assertIn(f"CREATE OR REPLACE SQL SECURITY DEFINER VIEW `{name}` AS", sql)
             self.assertNotIn(name, generator.TABLE_ORDER)
 
+    def test_board_views_keep_to_the_fiscal_year(self):
+        """A view that totals by quarter or month counts only the fiscal year: the data starts the December before."""
+        for name, sql in generator.BOARD_VIEWS.items():
+            if "QUARTER(" not in sql and "MONTH(" not in sql:
+                continue
+            with self.subTest(view=name):
+                self.assertIn(f"= {generator.FISCAL_YEAR}", sql)
+
     def test_sql_grants_each_user_its_tables(self):
         """The SQL creates each department user and grants it each of its tables."""
         sql = generator.render_sql(self.backoffice)

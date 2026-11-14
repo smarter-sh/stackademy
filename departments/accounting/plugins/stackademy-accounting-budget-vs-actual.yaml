@@ -2,7 +2,8 @@ apiVersion: smarter.sh/v1
 kind: SqlPlugin
 metadata:
   name: stackademy_accounting_budget_vs_actual
-  description: Each department's budget against what it actually spent, by month and expense account, most over budget first.
+  description: "Each department's budget, actual spending and overspending, totalled by the database, for 2025, a quarter
+    or a month; by account, for a department that is named."
   pluginClass: sql
   version: 1.0.0
   tags:
@@ -23,30 +24,42 @@ spec:
   sqlData:
     limit: 25
     sqlQuery: |
-      SELECT d.name AS department, b.fiscal_month, b.gl_account, a.name AS account, b.budget_amount,
-        COALESCE(SUM(g.debit - g.credit), 0) AS actual, COALESCE(SUM(g.debit - g.credit), 0) - b.budget_amount AS over_budget
-      FROM department_budgets b
-      JOIN departments d ON d.department_id = b.department_id
-      JOIN chart_of_accounts a ON a.gl_account = b.gl_account
-      LEFT JOIN gl_entries g ON g.department_id = b.department_id AND g.gl_account = b.gl_account
-        AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month
-      WHERE (b.fiscal_month = {month} OR {month} IS NULL)
-        AND (d.name LIKE CONCAT('%', {department}, '%') OR {department} IS NULL)
-      GROUP BY d.name, b.fiscal_month, b.gl_account, a.name, b.budget_amount
+      SELECT department, account, SUM(budget) AS budget, SUM(actual) AS actual, SUM(actual) - SUM(budget) AS over_budget
+      FROM (
+        SELECT d.name AS department, CASE WHEN {department} IS NULL THEN 'all accounts' ELSE a.name END AS account,
+          b.budget_amount AS budget,
+          (SELECT COALESCE(SUM(g.debit - g.credit), 0) FROM gl_entries g
+           WHERE g.department_id = b.department_id AND g.gl_account = b.gl_account
+             AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month) AS actual
+        FROM department_budgets b
+        JOIN departments d ON d.department_id = b.department_id
+        JOIN chart_of_accounts a ON a.gl_account = b.gl_account
+        WHERE (CEIL(b.fiscal_month / 3) = {quarter} OR {quarter} IS NULL)
+          AND (b.fiscal_month = {month} OR {month} IS NULL)
+          AND (d.name LIKE CONCAT('%', {department}, '%') OR {department} IS NULL)
+      ) x
+      GROUP BY department, account
       ORDER BY over_budget DESC;
     parameters:
+    - name: quarter
+      type: integer
+      description: the quarter of 2025, from 1 to 4. Omit it, and month, for the whole year.
+      required: false
+      enum: null
     - name: month
       type: integer
-      description: the month of 2025, from 1 to 12. Omit it for every month.
+      description: the month of 2025, from 1 to 12. Omit it for the whole quarter, or year.
       required: false
       enum: null
     - name: department
       type: string
-      description: part of a department's name, e.g. Information. Omit it for every department.
+      description: part of a department's name, e.g. Admissions, for its accounts. Omit it for every department's totals.
       required: false
       enum: null
     testValues:
+    - name: quarter
+      value: 4
     - name: month
       value: 12
     - name: department
-      value: Information
+      value: Admissions

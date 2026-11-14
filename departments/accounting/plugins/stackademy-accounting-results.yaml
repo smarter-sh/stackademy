@@ -1,0 +1,47 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_accounting_results
+  description: Revenue, expenses and net income for a period, e.g. a quarter of 2025, totalled by the database.
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - accounting
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Accounting's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_accounting_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT SUM(CASE WHEN a.account_type = 'revenue' THEN g.credit - g.debit ELSE 0 END) AS revenue,
+        SUM(CASE WHEN a.account_type = 'expense' THEN g.debit - g.credit ELSE 0 END) AS expenses,
+        SUM(g.credit - g.debit) AS net_income
+      FROM gl_entries g
+      JOIN chart_of_accounts a ON a.gl_account = g.gl_account
+      WHERE a.account_type IN ('revenue', 'expense') AND g.entry_date BETWEEN {start_date} AND {end_date};
+    parameters:
+    - name: start_date
+      type: string
+      description: the period's first day, as YYYY-MM-DD, e.g. 2025-10-01.
+      required: true
+      enum: null
+    - name: end_date
+      type: string
+      description: the period's last day, as YYYY-MM-DD, e.g. 2025-12-31.
+      required: true
+      enum: null
+    testValues:
+    - name: start_date
+      value: '2025-10-01'
+    - name: end_date
+      value: '2025-12-31'

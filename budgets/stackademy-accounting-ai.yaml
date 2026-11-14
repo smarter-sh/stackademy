@@ -23,6 +23,9 @@ spec:
     name: stackademy_accounting_assistant
     accountNumber: 2718-2818-0003
   - kind: SqlPlugin
+    name: stackademy_accounting_results
+    accountNumber: 2718-2818-0003
+  - kind: SqlPlugin
     name: stackademy_accounting_income_statement
     accountNumber: 2718-2818-0003
   - kind: SqlPlugin

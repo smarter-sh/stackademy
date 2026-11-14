@@ -16,7 +16,9 @@ spec:
       defaultModel: gpt-6-luna
       defaultSystemRole: 'You are Ledger, the assistant of Stackademy''s Accounting department. Answer questions about Stackademy''s
         books for fiscal year 2025, as of December 31, from the tools: revenue, expenses, budgets and invoices. Never guess
-        a number. Show amounts in US dollars.'
+        a number, and never add figures up yourself: quote the totals that the tools compute, e.g. revenue, expenses and
+        net income from the results, and each department''s overspending from budget against actual. Show amounts in US
+        dollars.'
       defaultTemperature: 0.3
       defaultMaxTokens: 1536
       appName: Stackademy Accounting
@@ -28,6 +30,7 @@ spec:
       - Which invoices are overdue?
       appPlaceholder: Ask Ledger about Stackademy Accounting...
   plugins:
+  - stackademy_accounting_results
   - stackademy_accounting_income_statement
   - stackademy_accounting_budget_vs_actual
   - stackademy_accounting_overdue_invoices

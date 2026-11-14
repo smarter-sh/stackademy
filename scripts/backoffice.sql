@@ -7585,7 +7585,7 @@ SELECT QUARTER(g.entry_date) AS fiscal_quarter, MONTH(g.entry_date) AS fiscal_mo
   CASE WHEN a.account_type = 'revenue' THEN SUM(g.credit - g.debit) ELSE SUM(g.debit - g.credit) END AS amount
 FROM gl_entries g
 JOIN chart_of_accounts a ON a.gl_account = g.gl_account
-WHERE a.account_type IN ('revenue', 'expense')
+WHERE a.account_type IN ('revenue', 'expense') AND YEAR(g.entry_date) = 2025
 GROUP BY QUARTER(g.entry_date), MONTH(g.entry_date), a.account_type, a.gl_account, a.name;
 CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_budget_vs_actual` AS
 SELECT d.name AS department, CEIL(b.fiscal_month / 3) AS fiscal_quarter, b.fiscal_month,
@@ -7595,6 +7595,7 @@ SELECT d.name AS department, CEIL(b.fiscal_month / 3) AS fiscal_quarter, b.fisca
          AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month)) AS actual
 FROM department_budgets b
 JOIN departments d ON d.department_id = b.department_id
+WHERE b.fiscal_year = 2025
 GROUP BY d.name, b.fiscal_month;
 CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_enrollments` AS
 SELECT QUARTER(e.enrolled_on) AS fiscal_quarter, MONTH(e.enrolled_on) AS fiscal_month, c.course_code, c.course_name,
@@ -7602,6 +7603,7 @@ SELECT QUARTER(e.enrolled_on) AS fiscal_quarter, MONTH(e.enrolled_on) AS fiscal_
 FROM enrollments e
 JOIN cohorts h ON h.cohort_id = e.cohort_id
 JOIN courses c ON c.course_id = h.course_id
+WHERE YEAR(e.enrolled_on) = 2025
 GROUP BY QUARTER(e.enrolled_on), MONTH(e.enrolled_on), c.course_code, c.course_name;
 CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_course_production` AS
 SELECT c.course_code, c.course_name, l.status, COUNT(*) AS lessons
