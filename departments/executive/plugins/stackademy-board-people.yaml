@@ -1,0 +1,38 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_board_people
+  description: "Headcount and annual payroll by department: totals only, never anyone's salary."
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query the Board Pack of Stackademy's executives, for their assistant. Use the tool's results as they are.
+  connection: stackademy_executive_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT department, headcount, annual_payroll
+      FROM board_headcount
+      WHERE (department LIKE CONCAT('%', {department}, '%') OR {department} IS NULL)
+      ORDER BY headcount DESC;
+    parameters:
+    - name: department
+      type: string
+      description: part of a department's name, e.g. Admissions. Omit it for every department.
+      required: false
+      enum: null
+    testValues:
+    - name: department
+      value: Admissions

@@ -1,0 +1,39 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_board_financials
+  description: "The income statement of 2025, or of one quarter: revenue and expenses by account, from the Board Pack's totals."
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query the Board Pack of Stackademy's executives, for their assistant. Use the tool's results as they are.
+  connection: stackademy_executive_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT account_type, account, SUM(amount) AS amount
+      FROM board_income_statement
+      WHERE (fiscal_quarter = {quarter} OR {quarter} IS NULL)
+      GROUP BY account_type, account
+      ORDER BY account_type DESC, amount DESC;
+    parameters:
+    - name: quarter
+      type: integer
+      description: the quarter of 2025, from 1 to 4. Omit it for the whole year.
+      required: false
+      enum: null
+    testValues:
+    - name: quarter
+      value: 3

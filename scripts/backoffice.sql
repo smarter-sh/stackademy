@@ -7572,6 +7572,44 @@ INSERT INTO `gl_entries` VALUES
 (2501,1146,'2025-12-31','5000',7,'Payroll 12/2025','payroll',111666.62,0.00),
 (2502,1146,'2025-12-31','1000',NULL,'Payroll 12/2025','payroll',0.00,325666.54);
 
+-- The Board Pack's views: totals only. See BOARD_VIEWS in the generator.
+CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_headcount` AS
+SELECT d.name AS department, COUNT(e.employee_id) AS headcount, SUM(c.annual_salary) AS annual_payroll
+FROM employees e
+JOIN departments d ON d.department_id = e.department_id
+JOIN compensation c ON c.employee_id = e.employee_id
+  AND c.effective_date = (SELECT MAX(c2.effective_date) FROM compensation c2 WHERE c2.employee_id = e.employee_id)
+GROUP BY d.name;
+CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_income_statement` AS
+SELECT QUARTER(g.entry_date) AS fiscal_quarter, MONTH(g.entry_date) AS fiscal_month, a.account_type, a.name AS account,
+  CASE WHEN a.account_type = 'revenue' THEN SUM(g.credit - g.debit) ELSE SUM(g.debit - g.credit) END AS amount
+FROM gl_entries g
+JOIN chart_of_accounts a ON a.gl_account = g.gl_account
+WHERE a.account_type IN ('revenue', 'expense')
+GROUP BY QUARTER(g.entry_date), MONTH(g.entry_date), a.account_type, a.gl_account, a.name;
+CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_budget_vs_actual` AS
+SELECT d.name AS department, CEIL(b.fiscal_month / 3) AS fiscal_quarter, b.fiscal_month,
+  SUM(b.budget_amount) AS budget,
+  SUM((SELECT COALESCE(SUM(g.debit - g.credit), 0) FROM gl_entries g
+       WHERE g.department_id = b.department_id AND g.gl_account = b.gl_account
+         AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month)) AS actual
+FROM department_budgets b
+JOIN departments d ON d.department_id = b.department_id
+GROUP BY d.name, b.fiscal_month;
+CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_enrollments` AS
+SELECT QUARTER(e.enrolled_on) AS fiscal_quarter, MONTH(e.enrolled_on) AS fiscal_month, c.course_code, c.course_name,
+  COUNT(*) AS enrollments, SUM(e.price_paid) AS tuition, SUM(e.status = 'withdrawn') AS withdrawals
+FROM enrollments e
+JOIN cohorts h ON h.cohort_id = e.cohort_id
+JOIN courses c ON c.course_id = h.course_id
+GROUP BY QUARTER(e.enrolled_on), MONTH(e.enrolled_on), c.course_code, c.course_name;
+CREATE OR REPLACE SQL SECURITY DEFINER VIEW `board_course_production` AS
+SELECT c.course_code, c.course_name, l.status, COUNT(*) AS lessons
+FROM lessons l
+JOIN course_modules m ON m.module_id = l.module_id
+JOIN courses c ON c.course_id = m.course_id
+GROUP BY c.course_code, c.course_name, l.status;
+
 SET FOREIGN_KEY_CHECKS=1;
 
 -- The read-only users, one per department, and the tables that each may read. Their passwords are their
@@ -7624,6 +7662,13 @@ GRANT SELECT ON `stackademy`.`ap_invoices` TO 'stackademy_accounting'@'%';
 GRANT SELECT ON `stackademy`.`gl_entries` TO 'stackademy_accounting'@'%';
 GRANT SELECT ON `stackademy`.`department_budgets` TO 'stackademy_accounting'@'%';
 GRANT SELECT ON `stackademy`.`expense_reports` TO 'stackademy_accounting'@'%';
+CREATE USER IF NOT EXISTS 'stackademy_executive'@'%' IDENTIFIED BY 'stackademy_executive';
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'stackademy_executive'@'%';
+GRANT SELECT ON `stackademy`.`board_headcount` TO 'stackademy_executive'@'%';
+GRANT SELECT ON `stackademy`.`board_income_statement` TO 'stackademy_executive'@'%';
+GRANT SELECT ON `stackademy`.`board_budget_vs_actual` TO 'stackademy_executive'@'%';
+GRANT SELECT ON `stackademy`.`board_enrollments` TO 'stackademy_executive'@'%';
+GRANT SELECT ON `stackademy`.`board_course_production` TO 'stackademy_executive'@'%';
 CREATE USER IF NOT EXISTS 'stackademy_content'@'%' IDENTIFIED BY 'stackademy_content';
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'stackademy_content'@'%';
 GRANT SELECT ON `stackademy`.`departments` TO 'stackademy_content'@'%';

@@ -1,0 +1,42 @@
+apiVersion: smarter.sh/v1
+kind: Budget
+metadata:
+  name: stackademy_executive_ai
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - department
+  description: 'The monthly AI budget of Stackademy''s executives: what the Board Pack and its plugins may spend each month.'
+spec:
+  config:
+    unit: cost
+    period: month
+    periodicLimit: 150.0
+    absoluteLimit: 1800.0
+    duration: 0
+    action: block
+    warningThreshold: 80
+    message: The Board Pack has used this month's AI budget. Ask Stackademy's CFO to raise it.
+  resources:
+  - kind: LLMClient
+    name: stackademy_board_pack
+    accountNumber: 2718-2818-0000
+  - kind: SqlPlugin
+    name: stackademy_board_quarterly_results
+    accountNumber: 2718-2818-0000
+  - kind: SqlPlugin
+    name: stackademy_board_financials
+    accountNumber: 2718-2818-0000
+  - kind: SqlPlugin
+    name: stackademy_board_budget
+    accountNumber: 2718-2818-0000
+  - kind: SqlPlugin
+    name: stackademy_board_people
+    accountNumber: 2718-2818-0000
+  - kind: SqlPlugin
+    name: stackademy_board_enrollments
+    accountNumber: 2718-2818-0000
+  - kind: SqlPlugin
+    name: stackademy_board_course_production
+    accountNumber: 2718-2818-0000

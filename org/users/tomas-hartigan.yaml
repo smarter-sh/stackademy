@@ -20,6 +20,8 @@ spec:
     isStaff: false
     passwordSecret: stackademy_demo_password
   accounts:
+    - accountNumber: "2718-2818-0000"
+      isAccountAdmin: true
     - accountNumber: "2718-2818-0001"
       isAccountAdmin: true
     - accountNumber: "2718-2818-0002"

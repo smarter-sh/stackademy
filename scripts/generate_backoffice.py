@@ -26,6 +26,7 @@ import argparse
 import datetime
 import random
 import re
+import textwrap
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -50,6 +51,52 @@ EMAIL_DOMAIN = "stackademy.example"
 # and may read only its department's tables, so that the database itself keeps, e.g., salaries from Accounting.
 # -----------------------------------------------------------------------------------------------------------------
 CATALOGUE_TABLES = ["courses", "cohorts", "course_modules", "lessons"]
+BOARD_VIEWS: dict[str, str] = {
+    # The executives' Board Pack reads these views, never the tables beneath them: totals by department, month and
+    # course, so that no one's salary, and no student, reaches the board. Each is a SQL SECURITY DEFINER view, which
+    # reads its tables with the rights of the user who created it, so stackademy_executive needs only the views.
+    "board_headcount": """
+        SELECT d.name AS department, COUNT(e.employee_id) AS headcount, SUM(c.annual_salary) AS annual_payroll
+        FROM employees e
+        JOIN departments d ON d.department_id = e.department_id
+        JOIN compensation c ON c.employee_id = e.employee_id
+          AND c.effective_date = (SELECT MAX(c2.effective_date) FROM compensation c2 WHERE c2.employee_id = e.employee_id)
+        GROUP BY d.name
+    """,
+    "board_income_statement": """
+        SELECT QUARTER(g.entry_date) AS fiscal_quarter, MONTH(g.entry_date) AS fiscal_month, a.account_type, a.name AS account,
+          CASE WHEN a.account_type = 'revenue' THEN SUM(g.credit - g.debit) ELSE SUM(g.debit - g.credit) END AS amount
+        FROM gl_entries g
+        JOIN chart_of_accounts a ON a.gl_account = g.gl_account
+        WHERE a.account_type IN ('revenue', 'expense')
+        GROUP BY QUARTER(g.entry_date), MONTH(g.entry_date), a.account_type, a.gl_account, a.name
+    """,
+    "board_budget_vs_actual": """
+        SELECT d.name AS department, CEIL(b.fiscal_month / 3) AS fiscal_quarter, b.fiscal_month,
+          SUM(b.budget_amount) AS budget,
+          SUM((SELECT COALESCE(SUM(g.debit - g.credit), 0) FROM gl_entries g
+               WHERE g.department_id = b.department_id AND g.gl_account = b.gl_account
+                 AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month)) AS actual
+        FROM department_budgets b
+        JOIN departments d ON d.department_id = b.department_id
+        GROUP BY d.name, b.fiscal_month
+    """,
+    "board_enrollments": """
+        SELECT QUARTER(e.enrolled_on) AS fiscal_quarter, MONTH(e.enrolled_on) AS fiscal_month, c.course_code, c.course_name,
+          COUNT(*) AS enrollments, SUM(e.price_paid) AS tuition, SUM(e.status = 'withdrawn') AS withdrawals
+        FROM enrollments e
+        JOIN cohorts h ON h.cohort_id = e.cohort_id
+        JOIN courses c ON c.course_id = h.course_id
+        GROUP BY QUARTER(e.enrolled_on), MONTH(e.enrolled_on), c.course_code, c.course_name
+    """,
+    "board_course_production": """
+        SELECT c.course_code, c.course_name, l.status, COUNT(*) AS lessons
+        FROM lessons l
+        JOIN course_modules m ON m.module_id = l.module_id
+        JOIN courses c ON c.course_id = m.course_id
+        GROUP BY c.course_code, c.course_name, l.status
+    """,
+}
 GRANTS: dict[str, list[str]] = {
     "stackademy_catalog": CATALOGUE_TABLES,
     "stackademy_catalog_proxy": CATALOGUE_TABLES,
@@ -81,6 +128,7 @@ GRANTS: dict[str, list[str]] = {
         "department_budgets",
         "expense_reports",
     ],
+    "stackademy_executive": list(BOARD_VIEWS),
     "stackademy_content": [
         "departments",
         "employees",
@@ -232,8 +280,8 @@ LOGINS = [
     # (title, [(account, whether they administer it)]): the employees who may sign in, the first of each title.
     ("Chief Executive Officer", [("CORP", True), ("IT", False), ("HR", False), ("FIN", False), ("CONT", False), ("ADM", False)]),
     ("Chief Financial Officer", [("CORP", False), ("FIN", True)]),
-    # the head of IT manages every department's credentials, so administers every department's account.
-    ("Head of IT", [("IT", True), ("HR", True), ("FIN", True), ("CONT", True), ("ADM", True)]),
+    # the head of IT manages every account's credentials, the executives' included, so administers every account.
+    ("Head of IT", [("CORP", True), ("IT", True), ("HR", True), ("FIN", True), ("CONT", True), ("ADM", True)]),
     ("HR Director", [("HR", True)]),
     ("HR Business Partner", [("HR", False)]),
     ("Staff Accountant", [("FIN", False)]),
@@ -248,6 +296,7 @@ OWNERS_YAML = HERE.parent / "owners.yaml"
 
 DEPARTMENT_FOLDERS = [
     # (folder, account, the title of the employee who owns it)
+    ("departments/executive", "CORP", "Chief Executive Officer"),
     ("departments/it", "IT", "Head of IT"),
     ("departments/hr", "HR", "HR Director"),
     ("departments/accounting", "FIN", "Chief Financial Officer"),
@@ -999,6 +1048,11 @@ def render_sql(backoffice: Backoffice) -> str:
             values = ",\n".join("(" + ",".join(sql_value(value) for value in row) + ")" for row in chunk)
             out.append(f"INSERT INTO `{name}` VALUES\n{values};")
         out.append("")
+    out.append("-- The Board Pack's views: totals only. See BOARD_VIEWS in the generator.")
+    for name, select in BOARD_VIEWS.items():
+        body = textwrap.dedent(select).strip()
+        out.append(f"CREATE OR REPLACE SQL SECURITY DEFINER VIEW `{name}` AS\n{body};")
+    out.append("")
     out.append("SET FOREIGN_KEY_CHECKS=1;")
     out.append("")
     out.append("-- The read-only users, one per department, and the tables that each may read. Their passwords are their")

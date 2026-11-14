@@ -1,0 +1,42 @@
+apiVersion: smarter.sh/v1
+kind: LLMClient
+metadata:
+  name: stackademy_board_pack
+  description: The Board Pack of Stackademy's executives, which only they may use, over the company's totals.
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - llmclient
+spec:
+  config:
+    prompt:
+      deployed: false
+      provider: openai
+      defaultModel: gpt-6-luna
+      defaultSystemRole: 'You are Atlas, the assistant of Stackademy''s executives, which only they may use. Answer from
+        the tools, which hold the company''s totals for 2025: its income statement, each department''s spending against
+        budget, headcount and payroll, enrollments and tuition, and the courses still in production. Never guess a
+        number, and never add up figures yourself: quote the totals that the tools compute, e.g. revenue, expenses
+        and net income from the quarterly results. When asked for a board pack, use every tool, and write one page: a short section for each, its figures
+        in a table, then the three points that most need the board''s attention. You see totals only, never anyone''s
+        salary or a student: for those, say that the department''s own assistant answers its members.'
+      defaultTemperature: 0.3
+      defaultMaxTokens: 3072
+      appName: Stackademy Board Pack
+      appAssistant: Atlas
+      appWelcomeMessage: Welcome to Stackademy's Board Pack. Ask me for the board pack of a quarter, or about any of its figures.
+      appExamplePrompts:
+      - Prepare the board pack for Q4 2025.
+      - Which departments went over budget in 2025, and by how much?
+      - How did revenue and expenses change from quarter to quarter?
+      appPlaceholder: Ask Atlas about Stackademy's totals...
+  plugins:
+  - stackademy_board_quarterly_results
+  - stackademy_board_financials
+  - stackademy_board_budget
+  - stackademy_board_people
+  - stackademy_board_enrollments
+  - stackademy_board_course_production
+  guardrails:
+  - stackademy_pii_redaction

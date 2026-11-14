@@ -1,0 +1,47 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_board_budget
+  description: "Each department's spending against its budget, for 2025 or one quarter, from the Board Pack's totals."
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query the Board Pack of Stackademy's executives, for their assistant. Use the tool's results as they are.
+  connection: stackademy_executive_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT department, SUM(budget) AS budget, SUM(actual) AS actual, SUM(actual) - SUM(budget) AS over_budget
+      FROM board_budget_vs_actual
+      WHERE (fiscal_quarter = {quarter} OR {quarter} IS NULL)
+        AND (department LIKE CONCAT('%', {department}, '%') OR {department} IS NULL)
+      GROUP BY department
+      ORDER BY over_budget DESC;
+    parameters:
+    - name: quarter
+      type: integer
+      description: the quarter of 2025, from 1 to 4. Omit it for the whole year.
+      required: false
+      enum: null
+    - name: department
+      type: string
+      description: part of a department's name, e.g. Admissions. Omit it for every department.
+      required: false
+      enum: null
+    testValues:
+    - name: quarter
+      value: 3
+    - name: department
+      value: Admissions

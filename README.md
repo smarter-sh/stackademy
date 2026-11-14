@@ -779,15 +779,15 @@ who may read its resources. [`org/accounts/`](org/accounts/) declares them:
 
 [`org/users/`](org/users/) declares ten of its employees, who may sign in, and the accounts that each belongs to.
 Some of them **administer** an account: they manage every resource in it, and only in it. The chief executive is a
-member of every department; the head of IT administers every department's account, to manage its credentials; each
-department's head administers their department; and a few of their staff are ordinary members. They are fictional,
+member of every department; the head of IT administers every account, the executives' included, to manage its
+credentials; each department's head administers their department; and a few of their staff are ordinary members. They are fictional,
 the same people as in the back office, and every one of them signs in with the published password
 `stackademy-demo`, the value of the Secret [`stackademy_demo_password`](secrets/stackademy-demo-password.yaml).
 
 Each department's resources are in its folder of [`departments/`](departments/), and
 [`owners.yaml`](owners.yaml) says who owns each folder: HR's head owns `departments/hr/`, in Stackademy HR, and so
-on. Each department's `connections/` folder, its database credentials, belongs to the head of IT, in the
-department's account. So HR's connection, whose database user may read salaries, is in Stackademy HR, where only
+on, and the executives' folder, `departments/executive/`, belongs to the chief executive, in Stackademy Corp. Each
+department's `connections/` folder, its database credentials, belongs to the head of IT, in the department's account. So HR's connection, whose database user may read salaries, is in Stackademy HR, where only
 HR's members may use it, and Stackademy IT shares only what the whole company may use. When Smarter loads this
 repository into a platform, it applies each folder as its owner.
 [`scripts/generate_backoffice.py`](scripts/generate_backoffice.py) writes `org/users/` and `owners.yaml`, from
@@ -808,6 +808,16 @@ each uses Stackademy IT's PII guardrail, which IT shares with every department. 
 [`budgets/`](budgets/), of $150 a month and $1,800 in all. Their owners decide whether to publish them, so loading
 this repository leaves them undeployed: sign in as a department's head, and try its assistant in the workbench.
 
+The executives have one too: **Atlas**, the Board Pack, in [`departments/executive/`](departments/executive/), which
+only Stackademy Corp's members, the chief executive and the chief financial officer, may use. Ask it to _"Prepare
+the board pack for Q4 2025"_, and it writes one page from all of its tools: the quarter's results, each department's
+spending against budget, headcount and payroll, enrollments, and the courses still in production. It reads the
+database as its own user, `stackademy_executive`, which may read only views of totals, so no one's salary, and no
+student, reaches the board, and the database computes every total, so that the board pack's figures add up. A
+department's own assistant answers its members' questions about individuals. Combining the department assistants
+themselves, each behind its own account, is a job for a Smarter Orchestrator, which this repository will use when
+orchestrators can run.
+
 ---
 
 ## The course database
@@ -826,6 +836,7 @@ assistants answer from. Its tables, by department:
 | Admissions          | `students`, `cohorts`, `enrollments`, `promo_codes`, `payments`, `refunds`, `corporate_contracts` |
 | Accounting          | `chart_of_accounts`, `gl_entries`, `ar_invoices`, `ap_invoices`, `vendors`, `department_budgets`, `expense_reports` |
 | Course Content      | `course_modules`, `lessons`, `assets`, `production_tasks`                                       |
+| Executives          | the views `board_headcount`, `board_income_statement`, `board_budget_vs_actual`, `board_enrollments`, `board_course_production`: totals only |
 
 Every name, number and address in it is fictional. It covers one fiscal year, 2025, as of December 31: 40
 employees, 320 students in 45 cohorts, nine companies that buy team licenses, a general ledger that balances, and
@@ -850,6 +861,7 @@ Each department's assistant reads the database as its own user, which may read o
 | `stackademy_admissions`    | the catalogue's courses and cohorts, and Admissions' tables                  |
 | `stackademy_accounting`    | the directory, Accounting's tables, and Admissions' sales and payments       |
 | `stackademy_content`       | the directory, the vendors, and the courses and how they're made             |
+| `stackademy_executive`     | the Board Pack's views of totals, and none of the tables beneath them        |
 
 So the database itself keeps salaries from everyone but HR, whatever an assistant is asked. Their passwords are their
 names, which is why the [SqlConnection](#the-database-connection-connectionssql) and the [Secrets](#secrets-secrets)

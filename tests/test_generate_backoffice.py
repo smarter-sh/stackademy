@@ -123,7 +123,7 @@ class TestBackoffice(unittest.TestCase):
 
     def test_grants_name_real_tables(self):
         """Each department user is granted only tables that exist."""
-        known = set(generator.TABLE_ORDER) | set(generator.CATALOGUE_TABLES)
+        known = set(generator.TABLE_ORDER) | set(generator.CATALOGUE_TABLES) | set(generator.BOARD_VIEWS)
         for user, tables in generator.GRANTS.items():
             self.assertTrue(set(tables) <= known, user)
 
@@ -132,6 +132,14 @@ class TestBackoffice(unittest.TestCase):
         for user, tables in generator.GRANTS.items():
             if user != "stackademy_hr":
                 self.assertNotIn("compensation", tables, user)
+
+    def test_executives_read_only_the_board_views(self):
+        """The executives' user reads the Board Pack's views, which hold totals, and none of the tables beneath them."""
+        self.assertEqual(generator.GRANTS["stackademy_executive"], list(generator.BOARD_VIEWS))
+        sql = generator.render_sql(self.backoffice)
+        for name in generator.BOARD_VIEWS:
+            self.assertIn(f"CREATE OR REPLACE SQL SECURITY DEFINER VIEW `{name}` AS", sql)
+            self.assertNotIn(name, generator.TABLE_ORDER)
 
     def test_sql_grants_each_user_its_tables(self):
         """The SQL creates each department user and grants it each of its tables."""

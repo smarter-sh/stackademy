@@ -1,0 +1,42 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_board_course_production
+  description: "The courses still in production: how many of each one's lessons are published, and how many are not."
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query the Board Pack of Stackademy's executives, for their assistant. Use the tool's results as they are.
+  connection: stackademy_executive_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT course_code, course_name,
+        SUM(CASE WHEN status = 'published' THEN lessons ELSE 0 END) AS published_lessons,
+        SUM(CASE WHEN status <> 'published' THEN lessons ELSE 0 END) AS unpublished_lessons
+      FROM board_course_production
+      WHERE (course_code = {course_code} OR {course_code} IS NULL)
+      GROUP BY course_code, course_name
+      HAVING unpublished_lessons > 0 OR {course_code} IS NOT NULL
+      ORDER BY unpublished_lessons DESC;
+    parameters:
+    - name: course_code
+      type: string
+      description: a course's code, e.g. CS303. Omit it for every course that still has unpublished lessons.
+      required: false
+      enum: null
+    testValues:
+    - name: course_code
+      value: CS303

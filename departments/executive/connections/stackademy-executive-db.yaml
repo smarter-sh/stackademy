@@ -1,0 +1,27 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  description: >-
+    Read-only connection to the Board Pack's views of the stackademy database, as stackademy_executive, which may
+    read totals by department, month and course, and none of the tables beneath them: no one's salary, and no
+    student, reaches the board. It belongs to Stackademy Corp, where only the executives may use it, and the head
+    of IT, who administers the account, manages it.
+  name: stackademy_executive_db
+  version: 1.0.0
+  tags:
+    - stackademy
+    - executive
+    - sql
+spec:
+  connection:
+    authenticationMethod: tcpip
+    database: stackademy
+    dbEngine: django.db.backends.mysql
+    username: stackademy_executive
+    hostname: smarter-mariadb
+    maxOverflow: 10
+    password: stackademy_executive_db_password  # the name of a Secret, not the password itself
+    poolSize: 5
+    port: 3306
+    timeout: 30
+    useSsl: false

@@ -1,0 +1,39 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_board_enrollments
+  description: "Enrollments, tuition and withdrawals by quarter of 2025: totals only, never a student."
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - executive
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query the Board Pack of Stackademy's executives, for their assistant. Use the tool's results as they are.
+  connection: stackademy_executive_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT fiscal_quarter, SUM(enrollments) AS enrollments, SUM(tuition) AS tuition, SUM(withdrawals) AS withdrawals
+      FROM board_enrollments
+      WHERE (fiscal_quarter = {quarter} OR {quarter} IS NULL)
+      GROUP BY fiscal_quarter
+      ORDER BY fiscal_quarter;
+    parameters:
+    - name: quarter
+      type: integer
+      description: the quarter of 2025, from 1 to 4. Omit it for the whole year.
+      required: false
+      enum: null
+    testValues:
+    - name: quarter
+      value: 3
