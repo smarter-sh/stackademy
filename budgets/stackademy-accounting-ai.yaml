@@ -1,0 +1,33 @@
+apiVersion: smarter.sh/v1
+kind: Budget
+metadata:
+  name: stackademy_accounting_ai
+  version: 1.0.0
+  tags:
+  - stackademy
+  - accounting
+  - department
+  description: 'Stackademy Accounting''s monthly AI budget: what its assistant and its plugins may spend each month.'
+spec:
+  config:
+    unit: cost
+    period: month
+    periodicLimit: 150.0
+    absoluteLimit: 1800.0
+    duration: 0
+    action: block
+    warningThreshold: 80
+    message: Stackademy Accounting has used this month's AI budget. Ask Stackademy's CFO to raise it.
+  resources:
+  - kind: LLMClient
+    name: stackademy_accounting_assistant
+    accountNumber: 2718-2818-0003
+  - kind: SqlPlugin
+    name: stackademy_accounting_income_statement
+    accountNumber: 2718-2818-0003
+  - kind: SqlPlugin
+    name: stackademy_accounting_budget_vs_actual
+    accountNumber: 2718-2818-0003
+  - kind: SqlPlugin
+    name: stackademy_accounting_overdue_invoices
+    accountNumber: 2718-2818-0003

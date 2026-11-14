@@ -1,0 +1,52 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_accounting_budget_vs_actual
+  description: Each department's budget against what it actually spent, by month and expense account, most over budget first.
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - accounting
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Accounting's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_accounting_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT d.name AS department, b.fiscal_month, b.gl_account, a.name AS account, b.budget_amount,
+        COALESCE(SUM(g.debit - g.credit), 0) AS actual, COALESCE(SUM(g.debit - g.credit), 0) - b.budget_amount AS over_budget
+      FROM department_budgets b
+      JOIN departments d ON d.department_id = b.department_id
+      JOIN chart_of_accounts a ON a.gl_account = b.gl_account
+      LEFT JOIN gl_entries g ON g.department_id = b.department_id AND g.gl_account = b.gl_account
+        AND YEAR(g.entry_date) = b.fiscal_year AND MONTH(g.entry_date) = b.fiscal_month
+      WHERE (b.fiscal_month = {month} OR {month} IS NULL)
+        AND (d.name LIKE CONCAT('%', {department}, '%') OR {department} IS NULL)
+      GROUP BY d.name, b.fiscal_month, b.gl_account, a.name, b.budget_amount
+      ORDER BY over_budget DESC;
+    parameters:
+    - name: month
+      type: integer
+      description: the month of 2025, from 1 to 12. Omit it for every month.
+      required: false
+      enum: null
+    - name: department
+      type: string
+      description: part of a department's name, e.g. Information. Omit it for every department.
+      required: false
+      enum: null
+    testValues:
+    - name: month
+      value: 12
+    - name: department
+      value: Information

@@ -1,0 +1,34 @@
+apiVersion: smarter.sh/v1
+kind: LLMClient
+metadata:
+  name: stackademy_content_assistant
+  description: The assistant of Stackademy Course Content, which only its members may use, over the department's own records.
+  version: 1.0.0
+  tags:
+  - stackademy
+  - content
+  - llmclient
+spec:
+  config:
+    prompt:
+      deployed: false
+      provider: openai
+      defaultModel: gpt-6-luna
+      defaultSystemRole: You are Reel, the assistant of Stackademy's Course Content department, which designs and produces
+        its courses with freelance artists and video studios. Answer questions about the courses being made, their lessons
+        and their production tasks, from the tools. Never guess.
+      defaultTemperature: 0.3
+      defaultMaxTokens: 1536
+      appName: Stackademy Course Content
+      appAssistant: Reel
+      appWelcomeMessage: Welcome to Stackademy Course Content. Ask me about the courses we're making.
+      appExamplePrompts:
+      - Which courses still have unpublished lessons?
+      - What is Pixel Forge Studios working on?
+      - Which production tasks are in review?
+      appPlaceholder: Ask Reel about Stackademy Course Content...
+  plugins:
+  - stackademy_content_course_status
+  - stackademy_content_production_tasks
+  guardrails:
+  - stackademy_pii_redaction

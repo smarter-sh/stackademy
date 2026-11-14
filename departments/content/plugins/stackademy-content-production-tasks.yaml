@@ -1,0 +1,58 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_content_production_tasks
+  description: 'The production tasks of the courses being made: who is doing what, by when, and for how much, e.g. a video
+    studio''s edits.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - content
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Course Content's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_content_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT c.course_code, l.title AS lesson, a.asset_type, t.task_type, t.status, t.due_date, t.cost_estimate,
+        v.name AS vendor, CONCAT(e.first_name, ' ', e.last_name) AS designer
+      FROM production_tasks t
+      JOIN assets a ON a.asset_id = t.asset_id
+      JOIN lessons l ON l.lesson_id = a.lesson_id
+      JOIN course_modules m ON m.module_id = l.module_id
+      JOIN courses c ON c.course_id = m.course_id
+      LEFT JOIN vendors v ON v.vendor_id = t.vendor_id
+      LEFT JOIN employees e ON e.employee_id = t.employee_id
+      WHERE (v.name LIKE CONCAT('%', {vendor}, '%') OR {vendor} IS NULL)
+        AND (t.status = {status} OR {status} IS NULL)
+      ORDER BY t.due_date;
+    parameters:
+    - name: vendor
+      type: string
+      description: part of a vendor's name, e.g. Pixel Forge. Omit it for every vendor.
+      required: false
+      enum: null
+    - name: status
+      type: string
+      description: the tasks' status. Omit it for all of them.
+      required: false
+      enum:
+      - not_started
+      - in_progress
+      - in_review
+      - done
+    testValues:
+    - name: status
+      value: in_progress
+    - name: vendor
+      value: Pixel Forge

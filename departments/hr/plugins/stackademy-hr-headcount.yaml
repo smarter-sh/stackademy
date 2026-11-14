@@ -1,0 +1,44 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_hr_headcount
+  description: 'Headcount and pay by department: how many people each department has, and their average, lowest and highest
+    salary.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - hr
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy HR's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_hr_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT d.name AS department, COUNT(e.employee_id) AS headcount,
+        ROUND(AVG(c.annual_salary), 0) AS average_salary, MIN(c.annual_salary) AS lowest_salary, MAX(c.annual_salary) AS highest_salary
+      FROM employees e
+      JOIN departments d ON d.department_id = e.department_id
+      JOIN compensation c ON c.employee_id = e.employee_id
+        AND c.effective_date = (SELECT MAX(c2.effective_date) FROM compensation c2 WHERE c2.employee_id = e.employee_id)
+      WHERE (d.name LIKE CONCAT('%', {department}, '%') OR {department} IS NULL)
+      GROUP BY d.name
+      ORDER BY headcount DESC;
+    parameters:
+    - name: department
+      type: string
+      description: part of a department's name, e.g. Content. Omit it for every department.
+      required: false
+      enum: null
+    testValues:
+    - name: department
+      value: Content

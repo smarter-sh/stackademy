@@ -1,0 +1,47 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_accounting_overdue_invoices
+  description: 'Overdue invoices: what customers owe Stackademy, and what Stackademy owes its vendors, past their due date.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - accounting
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Accounting's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_accounting_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT x.* FROM (
+        SELECT 'receivable' AS kind, c.client_name AS party, i.invoice_number, i.amount, i.due_date,
+          DATEDIFF('2025-12-31', i.due_date) AS days_overdue
+        FROM ar_invoices i JOIN corporate_contracts c ON c.contract_id = i.contract_id WHERE i.status = 'overdue'
+        UNION ALL
+        SELECT 'payable' AS kind, v.name AS party, i.invoice_number, i.amount, i.due_date,
+          DATEDIFF('2025-12-31', i.due_date) AS days_overdue
+        FROM ap_invoices i JOIN vendors v ON v.vendor_id = i.vendor_id WHERE i.status = 'overdue'
+      ) x
+      WHERE (x.kind = {kind} OR {kind} IS NULL)
+      ORDER BY x.days_overdue DESC;
+    parameters:
+    - name: kind
+      type: string
+      description: receivable, owed to Stackademy, or payable, owed by it. Omit it for both.
+      required: false
+      enum:
+      - receivable
+      - payable
+    testValues:
+    - name: kind
+      value: receivable

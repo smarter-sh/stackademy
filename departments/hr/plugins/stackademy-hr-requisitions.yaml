@@ -1,0 +1,44 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_hr_requisitions
+  description: 'Job openings: the positions that Stackademy is hiring for, or has, with their salary range and applicants.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - hr
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy HR's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_hr_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT r.title, d.name AS department, r.status, r.opened_on, r.closed_on, r.salary_min, r.salary_max, r.applicants,
+        CONCAT(h.first_name, ' ', h.last_name) AS hiring_manager
+      FROM job_requisitions r
+      JOIN departments d ON d.department_id = r.department_id
+      JOIN employees h ON h.employee_id = r.hiring_manager_id
+      WHERE (r.status = {status} OR {status} IS NULL)
+      ORDER BY r.opened_on;
+    parameters:
+    - name: status
+      type: string
+      description: the requisitions' status. Omit it for all of them.
+      required: false
+      enum:
+      - open
+      - filled
+      - on_hold
+    testValues:
+    - name: status
+      value: open

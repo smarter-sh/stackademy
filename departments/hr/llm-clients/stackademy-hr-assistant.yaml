@@ -1,0 +1,35 @@
+apiVersion: smarter.sh/v1
+kind: LLMClient
+metadata:
+  name: stackademy_hr_assistant
+  description: The assistant of Stackademy HR, which only its members may use, over the department's own records.
+  version: 1.0.0
+  tags:
+  - stackademy
+  - hr
+  - llmclient
+spec:
+  config:
+    prompt:
+      deployed: false
+      provider: openai
+      defaultModel: gpt-6-luna
+      defaultSystemRole: 'You are Harper, the assistant of Stackademy''s HR department, which only its members may use. Answer
+        questions about Stackademy''s people, their pay, time off and hiring, from the tools: never guess a name, a number
+        or a date. Salaries are confidential: discuss them only with HR, which is who you are talking to.'
+      defaultTemperature: 0.3
+      defaultMaxTokens: 1536
+      appName: Stackademy HR
+      appAssistant: Harper
+      appWelcomeMessage: Welcome to Stackademy HR. Ask me about our people, pay, time off and hiring.
+      appExamplePrompts:
+      - What is our headcount and average salary by department?
+      - How much time off has Avery Ivanova used this year?
+      - Which positions are we hiring for?
+      appPlaceholder: Ask Harper about Stackademy HR...
+  plugins:
+  - stackademy_hr_headcount
+  - stackademy_hr_employee
+  - stackademy_hr_requisitions
+  guardrails:
+  - stackademy_pii_redaction

@@ -1,0 +1,45 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_hr_employee
+  description: 'One employee''s record: title, department, manager, hire date, current salary and pay band, and time off this
+    year.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - hr
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy HR's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_hr_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT e.first_name, e.last_name, e.title, d.name AS department, CONCAT(m.first_name, ' ', m.last_name) AS manager,
+        e.hire_date, e.employment_type, e.location, c.annual_salary, c.pay_band, c.bonus_target_percent,
+        p.accrued_days, p.used_days, p.carried_over_days
+      FROM employees e
+      JOIN departments d ON d.department_id = e.department_id
+      LEFT JOIN employees m ON m.employee_id = e.manager_id
+      JOIN compensation c ON c.employee_id = e.employee_id
+        AND c.effective_date = (SELECT MAX(c2.effective_date) FROM compensation c2 WHERE c2.employee_id = e.employee_id)
+      LEFT JOIN pto_balances p ON p.employee_id = e.employee_id AND p.year = 2025
+      WHERE CONCAT(e.first_name, ' ', e.last_name) LIKE CONCAT('%', {name}, '%');
+    parameters:
+    - name: name
+      type: string
+      description: all or part of the employee's name, e.g. Ivanova.
+      required: true
+      enum: null
+    testValues:
+    - name: name
+      value: Ivanova

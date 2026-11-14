@@ -1,0 +1,35 @@
+apiVersion: smarter.sh/v1
+kind: LLMClient
+metadata:
+  name: stackademy_accounting_assistant
+  description: The assistant of Stackademy Accounting, which only its members may use, over the department's own records.
+  version: 1.0.0
+  tags:
+  - stackademy
+  - accounting
+  - llmclient
+spec:
+  config:
+    prompt:
+      deployed: false
+      provider: openai
+      defaultModel: gpt-6-luna
+      defaultSystemRole: 'You are Ledger, the assistant of Stackademy''s Accounting department. Answer questions about Stackademy''s
+        books for fiscal year 2025, as of December 31, from the tools: revenue, expenses, budgets and invoices. Never guess
+        a number. Show amounts in US dollars.'
+      defaultTemperature: 0.3
+      defaultMaxTokens: 1536
+      appName: Stackademy Accounting
+      appAssistant: Ledger
+      appWelcomeMessage: Welcome to Stackademy Accounting. Ask me about our revenue, expenses, budgets and invoices for 2025.
+      appExamplePrompts:
+      - What were revenue and expenses in Q3 2025?
+      - Which departments went over budget in December?
+      - Which invoices are overdue?
+      appPlaceholder: Ask Ledger about Stackademy Accounting...
+  plugins:
+  - stackademy_accounting_income_statement
+  - stackademy_accounting_budget_vs_actual
+  - stackademy_accounting_overdue_invoices
+  guardrails:
+  - stackademy_pii_redaction

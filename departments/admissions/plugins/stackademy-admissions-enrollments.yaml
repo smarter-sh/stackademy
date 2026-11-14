@@ -1,0 +1,50 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_admissions_enrollments
+  description: Enrollments, tuition and withdrawals by course, for 2025 or one of its months.
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - admissions
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Admissions's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_admissions_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT c.course_code, c.course_name, COUNT(*) AS enrollments,
+        SUM(e.price_paid) AS tuition, SUM(e.status = 'withdrawn') AS withdrawals
+      FROM enrollments e
+      JOIN cohorts h ON h.cohort_id = e.cohort_id
+      JOIN courses c ON c.course_id = h.course_id
+      WHERE (c.course_code = {course_code} OR {course_code} IS NULL)
+        AND (MONTH(e.enrolled_on) = {month} OR {month} IS NULL)
+      GROUP BY c.course_code, c.course_name
+      ORDER BY tuition DESC;
+    parameters:
+    - name: course_code
+      type: string
+      description: a course's code, e.g. CS320. Omit it for every course.
+      required: false
+      enum: null
+    - name: month
+      type: integer
+      description: the month of 2025, from 1 to 12, to count only its enrollments. Omit it for the whole year.
+      required: false
+      enum: null
+    testValues:
+    - name: course_code
+      value: CS320
+    - name: month
+      value: 4

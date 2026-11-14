@@ -1,0 +1,33 @@
+apiVersion: smarter.sh/v1
+kind: LLMClient
+metadata:
+  name: stackademy_admissions_assistant
+  description: The assistant of Stackademy Admissions, which only its members may use, over the department's own records.
+  version: 1.0.0
+  tags:
+  - stackademy
+  - admissions
+  - llmclient
+spec:
+  config:
+    prompt:
+      deployed: false
+      provider: openai
+      defaultModel: gpt-6-luna
+      defaultSystemRole: You are Ada, the assistant of Stackademy's Admissions department. Answer questions about enrollments,
+        tuition and the companies that buy team licenses, for 2025, from the tools. Never guess a number.
+      defaultTemperature: 0.3
+      defaultMaxTokens: 1536
+      appName: Stackademy Admissions
+      appAssistant: Ada
+      appWelcomeMessage: Welcome to Stackademy Admissions. Ask me about enrollments, tuition and our corporate customers.
+      appExamplePrompts:
+      - Which courses brought in the most tuition?
+      - How many students enrolled in CS320?
+      - Which companies have the largest contracts?
+      appPlaceholder: Ask Ada about Stackademy Admissions...
+  plugins:
+  - stackademy_admissions_enrollments
+  - stackademy_admissions_corporate_contracts
+  guardrails:
+  - stackademy_pii_redaction

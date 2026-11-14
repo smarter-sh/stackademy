@@ -1,0 +1,41 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_content_course_status
+  description: 'How far along each course''s lessons are: how many are drafts, in production, in review, or published.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - content
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Course Content's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_content_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT c.course_code, c.course_name, l.status, COUNT(*) AS lessons
+      FROM lessons l
+      JOIN course_modules m ON m.module_id = l.module_id
+      JOIN courses c ON c.course_id = m.course_id
+      WHERE (c.course_code = {course_code} OR ({course_code} IS NULL AND l.status <> 'published'))
+      GROUP BY c.course_code, c.course_name, l.status
+      ORDER BY c.course_code, l.status;
+    parameters:
+    - name: course_code
+      type: string
+      description: a course's code, e.g. CS303. Omit it for every course with unpublished lessons.
+      required: false
+      enum: null
+    testValues:
+    - name: course_code
+      value: CS303

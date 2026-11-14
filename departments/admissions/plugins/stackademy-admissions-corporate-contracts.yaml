@@ -1,0 +1,38 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: stackademy_admissions_corporate_contracts
+  description: 'The companies that buy team licenses: seats, annual value and dates of each contract.'
+  pluginClass: sql
+  version: 1.0.0
+  tags:
+  - stackademy
+  - admissions
+  - sql
+spec:
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    temperature: 0.2
+    maxTokens: 2048
+    systemRole: |
+      You query Stackademy Admissions's records, for its assistant. Use the tool's results as they are.
+  connection: stackademy_admissions_db
+  sqlData:
+    limit: 25
+    sqlQuery: |
+      SELECT client_name, seats, annual_value, start_date, end_date
+      FROM corporate_contracts
+      WHERE (client_name LIKE CONCAT('%', {client}, '%') OR {client} IS NULL)
+      ORDER BY annual_value DESC;
+    parameters:
+    - name: client
+      type: string
+      description: part of a company's name, e.g. Halverson. Omit it for every company.
+      required: false
+      enum: null
+    testValues:
+    - name: client
+      value: Halverson

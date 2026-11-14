@@ -1,0 +1,30 @@
+apiVersion: smarter.sh/v1
+kind: Budget
+metadata:
+  name: stackademy_admissions_ai
+  version: 1.0.0
+  tags:
+  - stackademy
+  - admissions
+  - department
+  description: 'Stackademy Admissions''s monthly AI budget: what its assistant and its plugins may spend each month.'
+spec:
+  config:
+    unit: cost
+    period: month
+    periodicLimit: 150.0
+    absoluteLimit: 1800.0
+    duration: 0
+    action: block
+    warningThreshold: 80
+    message: Stackademy Admissions has used this month's AI budget. Ask Stackademy's CFO to raise it.
+  resources:
+  - kind: LLMClient
+    name: stackademy_admissions_assistant
+    accountNumber: 2718-2818-0005
+  - kind: SqlPlugin
+    name: stackademy_admissions_enrollments
+    accountNumber: 2718-2818-0005
+  - kind: SqlPlugin
+    name: stackademy_admissions_corporate_contracts
+    accountNumber: 2718-2818-0005
