@@ -5,10 +5,9 @@
 # backoffice.sql, which scripts/generate_backoffice.py generates.
 #
 # The database was called smarter_test_db, with the users smarter_test_user and
-# smarter_test_proxy_user. The script leaves an existing smarter_test_db and its users as
-# they are: the Stackademy plugins that accounts copied before the rename still read
-# it, until a release of Smarter moves them to stackademy. A later version of this
-# script drops it.
+# smarter_test_proxy_user. Smarter 0.46.0 moved every account's Stackademy plugins to
+# stackademy (manage.py rename_stackademy_resources), so the script drops the old
+# database and its users, wherever they are left.
 #
 # The script creates the database, its tables and their rows, and a read-only user for
 # each department, whose password is its name, and who may read only its department's
@@ -45,6 +44,9 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SQL_FILES=("$SCRIPTS_DIR/stackademy.sql" "$SCRIPTS_DIR/backoffice.sql")
 GRANTS_FILE="$SCRIPTS_DIR/backoffice-grants.txt"
 DATABASE="stackademy"
+# the course database's former name, and its users, which the script drops.
+RETIRED_DATABASE="smarter_test_db"
+RETIRED_USERS=("smarter_test_user" "smarter_test_proxy_user")
 EXPECTED_COURSES=48
 # the back office's fiscal year: the Board Pack's views total it, and nothing from another year.
 FISCAL_YEAR=2025
@@ -164,6 +166,11 @@ report "creating Stackademy's course database, $DATABASE"
 
 version="$(query 'SELECT VERSION();')" || fail "can't connect to $target as $user (see the error above)"
 report "server: $target, version $version, as $user"
+run_sql -e "DROP DATABASE IF EXISTS \`$RETIRED_DATABASE\`;" || fail "can't drop $RETIRED_DATABASE (see the error above)"
+for retired_user in "${RETIRED_USERS[@]}"; do
+    run_sql -e "DROP USER IF EXISTS '$retired_user'@'%';" || fail "can't drop the user $retired_user (see the error above)"
+done
+report "dropped the former database, $RETIRED_DATABASE, and its users, if they were there"
 for sql_file in "${SQL_FILES[@]}"; do
     report "sql file: $(basename "$sql_file"), sha256 $(sha256 "$sql_file")"
     run_sql <"$sql_file" || fail "$(basename "$sql_file") failed in $target (see the error above)"
@@ -181,6 +188,15 @@ unbalanced="$(query "SELECT SUM(debit) - SUM(credit) FROM $DATABASE.gl_entries;"
     fail "can't read $DATABASE.gl_entries"
 [ "$unbalanced" = "0.00" ] || fail "the general ledger doesn't balance: debits exceed credits by $unbalanced"
 report "checked: the general ledger balances"
+
+retired="$(query "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '$RETIRED_DATABASE';")" ||
+    fail "can't read information_schema.SCHEMATA"
+[ "$retired" = "0" ] || fail "the former database, $RETIRED_DATABASE, is still there"
+for retired_user in "${RETIRED_USERS[@]}"; do
+    left="$(query "SELECT COUNT(*) FROM mysql.user WHERE User = '$retired_user';")" || fail "can't read mysql.user"
+    [ "$left" = "0" ] || fail "the former user $retired_user is still there"
+done
+report "checked: the former database, $RETIRED_DATABASE, and its users are gone"
 
 # The Board Pack's views total one fiscal year: the ledger and the enrollments start in the December before it.
 board_revenue="$(query "SELECT SUM(amount) FROM $DATABASE.board_income_statement WHERE account_type = 'revenue';")" ||
