@@ -1,0 +1,17 @@
+apiVersion: smarter.sh/v1
+kind: Budget
+metadata:
+  name: course_advisor_daily
+  description: Stanley's daily allowance, so that a public chatbot can't run up an unlimited bill.
+  version: 1.1.0
+spec:
+  config:
+    unit: cost
+    period: day
+    periodicLimit: 1.00
+    action: block
+    warningThreshold: 80
+    message: Stanley has answered all the questions he can for today. Please come back tomorrow.
+  resources:
+    - kind: LLMClient
+      name: course_advisor
