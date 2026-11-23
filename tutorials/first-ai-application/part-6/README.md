@@ -1,6 +1,6 @@
 # Your First AI Application, Part 6
 
-The finished files of Part 6: Searching Your Own Documents With a Vectorstore (coming soon, in the [Tutorials](https://blog.smarter.sh/category/tutorials/) category).
+The finished files of [Part 6: Searching Your Own Documents With a Vectorstore](https://blog.smarter.sh/2026/11/23/first-ai-application-part-6-vectorstore/).
 
 Stackademy's student handbook, which Stanley searches when a question is about a policy: a Pinecone Vectorstore, the handbook loaded into it, and the Vectorsearch `handbook_search`, which Stanley lists. `stackademy_topics` grows to include student policies.
 
