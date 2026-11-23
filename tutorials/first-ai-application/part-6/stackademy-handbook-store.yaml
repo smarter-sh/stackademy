@@ -1,0 +1,22 @@
+apiVersion: smarter.sh/v1
+kind: Vectorstore
+metadata:
+  name: stackademy_handbook
+  description: Stackademy's student handbook and policies.
+  version: 1.0.0
+spec:
+  backend: pinecone
+  hosting: managed
+  connection: pinecone
+  index:
+    dimension: 1536
+    metric: cosine
+    deletionProtection: false
+  embeddings:
+    provider: openai
+    model: text-embedding-3-small
+  pinecone:
+    cloud: aws
+    region: us-east-1
+  maintenance:
+    snapshots: false

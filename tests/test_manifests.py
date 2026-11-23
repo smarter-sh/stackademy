@@ -6,7 +6,9 @@ of its kind, as ``apply`` does first, without applying anything. There is one te
 
 The manifests are found as a platform finds them when it loads this repository: every ``*.yaml``, ``*.yml`` and
 ``*.yaml.tpl`` file whose ``apiVersion`` starts with ``smarter.sh/``, outside hidden folders, ``scripts/``,
-``tests/`` and ``venv/``. Templates are filled in with the scheme and host of the platform that validates them.
+``tests/`` and ``venv/``, and also those that ``.smarterignore`` keeps a platform from applying, e.g. the tutorials',
+so that they keep working as Smarter changes. Templates are filled in with the scheme and host of the platform that
+validates them.
 
 Run it with ``make test``, or ``venv/bin/python -m unittest discover -s tests -v``. It needs:
 

@@ -1,0 +1,12 @@
+apiVersion: smarter.sh/v1
+kind: ApiConnection
+metadata:
+  name: catalog_api
+  description: Stackademy's course catalogue api.
+  version: 1.0.0
+spec:
+  connection:
+    baseUrl: http://localhost:9357
+    authMethod: token
+    apiKey: catalog_api_key
+    timeout: 30

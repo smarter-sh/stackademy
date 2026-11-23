@@ -1,0 +1,41 @@
+apiVersion: smarter.sh/v1
+kind: ApiPlugin
+metadata:
+  name: course_catalog
+  pluginClass: api
+  description: Looks up courses in Stackademy's course catalogue, by subject and by price.
+  version: 1.0.0
+spec:
+  connection: catalog_api
+  apiData:
+    endpoint: /api/v1/demos/stackademy/course-catalogue/
+    method: GET
+    parameters:
+      - name: description
+        type: string
+        description: A subject that the course's description mentions.
+        required: false
+        enum:
+          - AI
+          - mobile
+          - web
+          - database
+          - network
+          - neural networks
+      - name: max_cost
+        type: number
+        description: The most that the student wants to pay for a course, in US dollars.
+        required: false
+    testValues:
+      - name: description
+        value: AI
+      - name: max_cost
+        value: 1000
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    systemRole: >
+      You are a student advisor at Stackademy. Look courses up in the course
+      catalogue before you answer.

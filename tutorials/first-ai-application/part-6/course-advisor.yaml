@@ -1,0 +1,44 @@
+apiVersion: smarter.sh/v1
+kind: LLMClient
+metadata:
+  name: course_advisor
+  description: Answers students' questions about Stackademy's courses.
+  version: 1.5.0
+spec:
+  config:
+    prompt:
+      provider: openai
+      defaultModel: gpt-6-luna
+      defaultSystemRole: >
+        You are Stanley, a friendly student advisor at Stackademy, an online
+        code academy. Answer questions about Stackademy's courses in a few
+        short sentences. If you don't know something, say so. Never guess.
+      appName: Stackademy Course Advisor
+      appAssistant: Stanley
+      appWelcomeMessage: Hi, I'm Stanley. What would you like to learn?
+      appExamplePrompts:
+        - Do you offer any courses on AI?
+        - My budget is $1,000. What courses can I take?
+    styles:
+      googleFont: Nunito
+      borderRadius: 16px
+      conversationHeader:
+        backgroundColor: "#14213d"
+        color: "#ffffff"
+        infoColor: "#fca311"
+      incomingMessage:
+        backgroundColor: "#e5e5e5"
+        color: "#14213d"
+      outgoingMessage:
+        backgroundColor: "#fca311"
+        color: "#14213d"
+  plugins:
+    - course_catalog
+    - course_prerequisites
+  guardrails:
+    - pii_redaction_input
+    - prompt_injection_keyword_input
+    - moderation_input
+    - stackademy_topics
+  vectorsearches:
+    - handbook_search

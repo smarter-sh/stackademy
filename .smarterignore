@@ -1,0 +1,8 @@
+# The files that a Smarter platform never applies when it loads this repository, with gitignore's patterns.
+# See "How Smarter loads this repository" in the README.
+
+# The scripts that the platform runs, and the files that they read, e.g. the course database's SQL.
+/scripts/
+
+# The tutorials' finished files: their readers build these resources themselves.
+/tutorials/

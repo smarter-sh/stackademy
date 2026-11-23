@@ -223,6 +223,8 @@ folders group the manifests by kind:
 | [`departments/`](departments/)                       | Each department's own resources, e.g. its database connection               |
 | [`owners.yaml`](owners.yaml)                         | Which department, and which person, owns each folder of `departments/`      |
 | [`scripts/`](scripts/)                               | Not manifests: the scripts that Smarter runs, e.g. to create the database   |
+| [`tutorials/`](tutorials/)                           | The finished files of the blog's tutorials, which Smarter doesn't load      |
+| [`.smarterignore`](.smarterignore)                   | The files that Smarter never loads: `scripts/` and `tutorials/`             |
 | [`Makefile`](Makefile)                               | Shortcuts for your own computer: `make init`, `make check`, `make database` |
 | [`.github/`](.github/)                               | GitHub's settings for this repository: the automated checks, and Dependabot |
 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | The list of automated checks                                                |
@@ -905,10 +907,27 @@ template, and apply the manifests in the order of their dependencies: Secrets, t
 LLMClients, then the Budget. The folders are only for people. Any project laid out like this one can be loaded the
 same way.
 
+### Files that Smarter doesn't load
+
+A project lists the files that Smarter must never apply in [`.smarterignore`](.smarterignore), at its root, with the
+same patterns as a `.gitignore`: a pattern without a slash matches at any depth, a leading slash anchors it to the
+repository's root, a trailing slash matches a folder and everything in it, `**` matches any number of folders, `!`
+includes again what an earlier pattern excluded, and `#` starts a comment. This repository's lists two folders:
+
+```text
+/scripts/
+/tutorials/
+```
+
+[`tutorials/`](tutorials/) holds the finished files of the tutorials on [blog.smarter.sh](https://blog.smarter.sh/category/tutorials/),
+such as [Your First AI Application](tutorials/first-ai-application/), in which you build Stanley step by step. A
+platform that already had those resources would spoil the tutorial, so Smarter skips them. The automated checks still
+validate them, so that the tutorials keep working as Smarter changes.
+
 ### Scripts
 
 Some things can't be described by a manifest, such as the course database itself. A project keeps the scripts that
-create them in its [`scripts/`](scripts/) folder, which never holds manifests, and lists them in
+create them in its [`scripts/`](scripts/) folder, which its [`.smarterignore`](.smarterignore) lists, and lists them in
 [`scripts/scripts.yaml`](scripts/scripts.yaml):
 
 ```yaml

@@ -1,0 +1,17 @@
+apiVersion: smarter.sh/v1
+kind: SqlConnection
+metadata:
+  name: catalog_db
+  description: Read-only connection to Stackademy's course database.
+  version: 1.0.0
+spec:
+  connection:
+    dbEngine: django.db.backends.mysql
+    hostname: smarter-mariadb
+    port: 3306
+    database: stackademy
+    username: stackademy_catalog
+    password: catalog_db_password
+    authenticationMethod: tcpip
+    useSsl: false
+    timeout: 30

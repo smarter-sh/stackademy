@@ -1,0 +1,9 @@
+apiVersion: smarter.sh/v1
+kind: Secret
+metadata:
+  name: catalog_api_key
+  description: The api key of Stackademy's course catalogue api.
+  version: 1.0.0
+spec:
+  config:
+    value: stackademy_catalog_api_key

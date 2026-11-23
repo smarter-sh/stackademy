@@ -1,0 +1,14 @@
+apiVersion: smarter.sh/v1
+kind: Vectorsearch
+metadata:
+  name: handbook_search
+  description: >
+    Searches Stackademy's student handbook, for its policies on enrollment, refunds, transfers, extensions,
+    grading, certificates, accessibility and academic honesty.
+  version: 1.0.0
+spec:
+  config:
+    vectorstore_name: stackademy_handbook
+    search_type: similarity
+    k: 4
+    is_enabled: true

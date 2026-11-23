@@ -1,0 +1,39 @@
+apiVersion: smarter.sh/v1
+kind: SqlPlugin
+metadata:
+  name: course_prerequisites
+  pluginClass: sql
+  description: Lists every course that a student must take before a given course, in the order to take them, with their prices.
+  version: 1.0.0
+spec:
+  connection: catalog_db
+  sqlData:
+    sqlQuery: >
+      WITH RECURSIVE chain AS (
+        SELECT course_id, course_code, course_name, cost, prerequisite_id, 0 AS steps_before
+        FROM courses
+        WHERE course_name LIKE CONCAT('%', {course_name}, '%')
+        UNION ALL
+        SELECT p.course_id, p.course_code, p.course_name, p.cost, p.prerequisite_id, chain.steps_before + 1
+        FROM courses p
+        JOIN chain ON p.course_id = chain.prerequisite_id
+      )
+      SELECT course_code, course_name, cost, steps_before
+      FROM chain
+      ORDER BY steps_before DESC;
+    parameters:
+      - name: course_name
+        type: string
+        description: The name of the course that the student wants to take, or part of it, e.g. Machine Learning.
+        required: true
+    testValues:
+      - name: course_name
+        value: Machine Learning
+    limit: 20
+  selector:
+    directive: always
+  prompt:
+    provider: openai
+    model: gpt-6-luna
+    systemRole: >
+      When a student asks what to take before a course, look up its prerequisites.
