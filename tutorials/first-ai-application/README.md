@@ -10,7 +10,7 @@ A tutorial on [blog.smarter.sh](https://blog.smarter.sh/category/tutorials/): yo
 | [Part 4: Querying a SQL Database With a SqlPlugin](https://blog.smarter.sh/2026/11/23/first-ai-application-part-4-sql-database/) | [`part-4/`](part-4/) |
 | [Part 5: LLM Guardrails That Keep a Chatbot Safe and On Topic](https://blog.smarter.sh/2026/11/23/first-ai-application-part-5-guardrails/) | [`part-5/`](part-5/) |
 | [Part 6: Searching Your Own Documents With a Vectorstore](https://blog.smarter.sh/2026/11/23/first-ai-application-part-6-vectorstore/) | [`part-6/`](part-6/) |
-| Part 7: Deploying an AI Chatbot and Embedding It in a Web Page (coming soon, in the [Tutorials](https://blog.smarter.sh/category/tutorials/) category) | [`part-7/`](part-7/) |
+| [Part 7: Deploying an AI Chatbot and Embedding It in a Web Page](https://blog.smarter.sh/2026/11/23/first-ai-application-part-7-deploy-embed/) | [`part-7/`](part-7/) |
 
 The parts build on each other: Part 4's `course-advisor.yaml` lists the tools of Parts 3 and 4, and so on. Apply a part's files only after the parts before it.
 

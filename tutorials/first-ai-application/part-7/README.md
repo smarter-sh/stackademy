@@ -1,6 +1,6 @@
 # Your First AI Application, Part 7
 
-The finished files of Part 7: Deploying an AI Chatbot and Embedding It in a Web Page (coming soon, in the [Tutorials](https://blog.smarter.sh/category/tutorials/) category).
+The finished files of [Part 7: Deploying an AI Chatbot and Embedding It in a Web Page](https://blog.smarter.sh/2026/11/23/first-ai-application-part-7-deploy-embed/).
 
 Stanley goes live: deployed at his own url, and embedded in a page of Stackademy's website with Smarter Chat's embed script, from the `@smarter.sh/ui-chat` npm package.
 
