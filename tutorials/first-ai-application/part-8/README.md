@@ -1,6 +1,6 @@
 # Your First AI Application, Part 8
 
-The finished files of Part 8: Controlling LLM Costs With Budgets, and Auditing With the Journal (coming soon, in the [Tutorials](https://blog.smarter.sh/category/tutorials/) category).
+The finished files of [Part 8: Controlling LLM Costs With Budgets, and Auditing With the Journal](https://blog.smarter.sh/2026/11/23/first-ai-application-part-8-budgets/).
 
 Stanley gets a budget: a daily allowance of 1.00 USD, which refuses his questions with a message of its own once he has spent it. The post first tries it out as a budget of 5,000 tokens a day, which runs out after two or three questions, then raises it to this one.
 
