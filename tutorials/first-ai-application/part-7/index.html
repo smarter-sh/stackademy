@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stackademy</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Nunito, Helvetica, Arial, sans-serif;
+        color: #14213d;
+        background: #ffffff;
+      }
+      header {
+        background: #14213d;
+        color: #ffffff;
+        padding: 24px 40px;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      header span {
+        color: #fca311;
+      }
+      main {
+        max-width: 720px;
+        margin: 48px auto;
+        padding: 0 24px;
+        line-height: 1.6;
+      }
+      h1 {
+        font-size: 40px;
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>Stack<span>ademy</span></header>
+    <main>
+      <h1>Learn to code, at your own pace.</h1>
+      <p>
+        Online courses, from your first program to machine learning. Not sure where to start? Ask Stanley, our
+        course advisor, with the chat button in the corner.
+      </p>
+    </main>
+
+    <!-- Smarter Chat: Stanley, the course_advisor LLMClient, deployed on your own Smarter platform. -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@smarter.sh/ui-chat@1/dist/embed.js"
+      data-chatbot="http://course-advisor.3141-5926-5359.api.localhost:9357/"
+      data-color="#fca311"
+      data-label="Ask Stanley"
+      async
+    ></script>
+  </body>
+</html>
